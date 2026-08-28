@@ -15,7 +15,7 @@
 <!-- HERO FULLSCREEN -->
 <section class="hero-fullscreen">
     <div class="hero-background">
-        <img src="Imagenes/flat-lay-composition-different-sized-plates 1.png" alt="Xanarchy Hero" />
+        <img src="Imagenes/hero_v2.jpg" alt="Xanarchy Hero" />
         <div class="hero-overlay"></div>
     </div>
     <div class="hero-content">
@@ -29,19 +29,19 @@
 <section class="lookbook-section">
     <div class="lookbook-grid">
         <a href="shop.php?category=Caballero" class="lookbook-item">
-            <img src="Imagenes/Caballero.png" alt="Caballero" />
+            <img src="Imagenes/Caballero_v2.jpg" alt="Caballero" />
             <div class="lookbook-label">CABALLERO</div>
         </a>
         <a href="shop.php?category=Dama" class="lookbook-item">
-            <img src="Imagenes/Dama.png" alt="Dama" />
+            <img src="Imagenes/Dama_v2.jpg" alt="Dama" />
             <div class="lookbook-label">DAMA</div>
         </a>
         <a href="shop.php?category=Ediciones Limitadas" class="lookbook-item">
-            <img src="Imagenes/Ediciones_Limitadas.png" alt="Ediciones Limitadas" />
+            <img src="Imagenes/Ediciones_Limitadas_v2.jpg" alt="Ediciones Limitadas" />
             <div class="lookbook-label">LIMITED EDITION</div>
         </a>
         <a href="shop.php?category=Colecciones" class="lookbook-item">
-            <img src="Imagenes/Colecciones.png" alt="Colecciones" />
+            <img src="Imagenes/Colecciones_v2.jpg" alt="Colecciones" />
             <div class="lookbook-label">COLECCIONES</div>
         </a>
     </div>
@@ -82,7 +82,7 @@
 <!-- LUXURY SPLIT PROMO -->
 <section class="luxury-split-promo">
     <div class="split-image">
-        <img src="Imagenes/Descuento1.png" alt="Gothic Collection" />
+        <img src="Imagenes/Descuento1_v2.jpg" alt="Gothic Collection" />
     </div>
     <div class="split-content">
         <span class="promo-badge">ARCHIVOS EXCLUSIVOS</span>
@@ -100,7 +100,7 @@
         <a href="about.php" class="link-luxury">CONOCE EL MANIFIESTO</a>
     </div>
     <div class="editorial-image">
-        <img src="Imagenes/quienes_somos.png" alt="Identidad Xanarchy" />
+        <img src="Imagenes/quienes_somos_v2.jpg" alt="Identidad Xanarchy" />
     </div>
 </section>
 
