@@ -1,87 +1,91 @@
+<?php
+require_once 'includes/config.php';
+require_once 'includes/header.php';
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <?php
-    require_once 'includes/config.php';
-    require_once 'includes/header.php';
-    ?>
-    <meta charset="UTF-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Estampa-TLA - Acerca de Nosotros</title>
+  <title>El Manifiesto | Xanarchy</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
+<body class="xanarchy-manifesto-page">
 
-<section class="about-us">
-  <h2>ACERCA DE NOSOTROS</h2>
-  <p class="about-description">
-    Estampa-Tla nace de la pasión por el diseño y la necesidad de expresarse a través de la ropa. Somos un negocio mexicano dedicado a ofrecer playeras y prendas con estilo, actitud y mucha personalidad.
-  </p>
-
-  <div class="about-grid">
-    <div class="about-item">
-      <h3>OBJETIVO</h3>
-      <p>Cada diseño que ves en nuestra tienda está pensado para conectar contigo, para que vistas lo que sientes y muestres al mundo quién eres.</p>
+<!-- HERO MANIFESTO -->
+<section class="manifesto-hero">
+    <div class="manifesto-hero-bg">
+        <img src="Imagenes/manifesto_hero.jpg" alt="El Manifiesto Xanarchy" />
+        <div class="hero-overlay"></div>
     </div>
-    <div class="about-image">
-      <img src="Imagenes/Objetivo.png" alt="Objetivo" />
+    <div class="manifesto-hero-content">
+        <h1>EL MANIFIESTO<br>XANARCHY</h1>
+        <p>No seguimos tendencias. Las dictamos.</p>
     </div>
-
-    <div class="about-image">
-      <img src="Imagenes/Meta.png" alt="Meta" />
-    </div>
-    <div class="about-item">
-      <h3>META</h3>
-      <p>Nos encanta mezclar arte, cultura urbana, humor y estilo en cada estampado. Desde lo minimalista hasta lo más atrevido, aquí encuentras de todo para armar tu flow.</p>
-    </div>
-
-    <div class="about-item">
-      <h3>CALIDAD</h3>
-      <p>Trabajamos con materiales de calidad y procesos responsables, porque creemos que el buen gusto también se lleva con conciencia.</p>
-    </div>
-    <div class="about-image">
-      <img src="Imagenes/Calidad.png" alt="Calida" />
-    </div>
-  </div>
-
-  <div class="offer-section">
-    <div class="offer-image">
-      <img src="Imagenes/Ofecemos.png" alt="Ofrecemos" />
-    </div>
-    <div class="offer-text">
-      <h3>OFRECEMOS</h3>
-      <p><strong>Diseños con pasión</strong><br/>Creamos estampados únicos que reflejan estilo, cultura y actitud.</p>
-      <p><strong>Productos de calidad</strong><br/>Usamos materiales cómodos y duraderos para que cada prenda se sienta y se vea increíble.</p>
-      <p><strong>Identidad</strong><br/>En Estampa-Tla no solo vendemos ropa, creamos <em>identidad</em>.</p>
-    </div>
-  </div>
-
-  <h2 class="team-title">MEET OUR TEAM</h2>
-  <div class="team-grid">
-
-    <div class="team-member">
-      <img src="Imagenes/Casi.jpg" alt="Kim" />
-      <h4>Harold Isai Almonaci Miranda</h4>
-      <p>Programador Frontend</p>
-    </div>
-    <div class="team-member">
-      <img src="Imagenes/Alejandro.jpg" alt="Alejandro" />
-      <h4>Luis Alejandro Garduño Valdivia</h4>
-      <p>Programador Backend</p>
-    </div>
-  </div>
-
-    <?php if (!isset($_SESSION['user'])): ?>
-  <section class="newsletter">
-    <h3>NOTICIAS, COLECCIONES Y MAS...</h3>
-    <button><a href="register.php">REGÍSTRATE</a></button>
-  </section>
-    <?php endif; ?>
-
 </section>
 
+<!-- VALUES GRID -->
+<section class="manifesto-values">
+    <div class="value-block black-block">
+        <h2>VISIÓN</h2>
+        <p>Redefinir el streetwear contemporáneo. Xanarchy nace de la necesidad de estructurar el caos urbano en prendas arquitectónicas, diseñadas para aquellos que rechazan lo ordinario y exigen lo extraordinario.</p>
+    </div>
+    <div class="value-block image-block">
+        <img src="Imagenes/manifesto_atelier.jpg" alt="Precisión en la confección" />
+    </div>
+    
+    <div class="value-block blue-block">
+        <h2>PRECISIÓN</h2>
+        <p>Materiales de primera línea y confección de alto rigor. Cada corte, cada textura y cada silueta está meticulosamente calculada. La calidad no es negociable; es nuestra firma.</p>
+    </div>
+    <div class="value-block white-block">
+        <h2>IDENTIDAD</h2>
+        <p>Creamos armaduras modernas. Vestir Xanarchy es un statement, una declaración de individualidad absoluta y de pertenencia a una élite que entiende el lenguaje del lujo subversivo.</p>
+    </div>
+</section>
+
+<!-- THE ARCHITECTS (FOUNDERS) - TEMPORALMENTE COMENTADO
+<section class="architects-section">
+    <div class="architects-header">
+        <h2>LOS ARQUITECTOS</h2>
+        <p>Las mentes maestras detrás de la revolución visual y técnica de Xanarchy.</p>
+    </div>
+    
+    <div class="architects-grid">
+        <div class="architect-card">
+            <div class="architect-image">
+                <img src="Imagenes/Casi.jpg" alt="Harold Isai Almonaci Miranda" />
+            </div>
+            <div class="architect-info">
+                <h3>HAROLD ISAI<br>ALMONACI MIRANDA</h3>
+                <span class="architect-role">DIRECTOR DE INGENIERÍA FRONTEND</span>
+            </div>
+        </div>
+        
+        <div class="architect-card">
+            <div class="architect-image">
+                <img src="Imagenes/Alejandro.jpg" alt="Luis Alejandro Garduño Valdivia" />
+            </div>
+            <div class="architect-info">
+                <h3>LUIS ALEJANDRO<br>GARDUÑO VALDIVIA</h3>
+                <span class="architect-role">DIRECTOR DE ARQUITECTURA BACKEND</span>
+            </div>
+        </div>
+    </div>
+</section>
+-->
+
+<!-- NEWSLETTER DARK BLOCK (Reused from index) -->
+<?php if (!isset($_SESSION['user'])): ?>
+<section class="newsletter-dark">
+    <div class="newsletter-content">
+        <h2>ACCESO CLASIFICADO</h2>
+        <p>Únete a la élite. Regístrate para tener acceso anticipado a nuestras colecciones de edición limitada y piezas de archivo.</p>
+        <a href="register.php" class="btn-primary-luxury inverse">SOLICITAR ACCESO</a>
+    </div>
+</section>
+<?php endif; ?>
+
 <?php require_once 'includes/footer.php'; ?>
-
 </body>
-
 </html>

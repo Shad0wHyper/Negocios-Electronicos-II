@@ -1,60 +1,75 @@
+<?php
+require_once 'includes/config.php';
+require_once 'includes/header.php';
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <?php
-    require_once 'includes/config.php';
-    require_once 'includes/header.php';
-    ?>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Estampa-TLA - Contacto</title>
+  <title>Contacto | Xanarchy</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
+<body class="xanarchy-contact-page">
 
-<section class="contact-us">
-  <div class="contact-hero">
-    <div class="contact-info">
-      <div class="icon">
-        <img src="Imagenes/Iconos/Icon1.png" alt="Icono" style="width: 40px; height: 40px;" />
-      </div>
-      <h2>CONTACT US</h2>
-      <p>______________________________</p>
-      <p>Síguenos en nuestras redes sociales</p>
-      <div class="social-icons">
-        <img src="Imagenes/Iconos/Facebook.png" alt="Facebook" class="icon" />
-        <img src="Imagenes/Iconos/Twitter.png" alt="Twitterr" class="icon" />
-        <img src="Imagenes/Iconos/Instagram.png" alt="Instagram" class="icon" />
-      </div>
+<!-- HERO CONTACT -->
+<section class="contact-hero">
+    <div class="contact-hero-bg">
+        <img src="Imagenes/contact_hero.jpg" alt="Contacto Xanarchy" />
+        <div class="hero-overlay"></div>
     </div>
-    <div class="contact-image">
-      <img src="Imagenes/contact us.png" alt="Playeras sonriendo" />
+    <div class="contact-hero-content">
+        <h1>CONEXIÓN</h1>
+        <p>ACCESO DIRECTO A LA ÉLITE</p>
     </div>
-  </div>
+</section>
 
-  <div class="contact-details">
-    <h2>PONTE EN CONTACTO CON NOSOTROS</h2>
-    <p><strong>Horario:</strong><br/>Lunes a Viernes 7:00 am - 11:00 pm<br/>Sábado y Domingo 9:00 am - 9:00 pm</p>
-    <p><strong>Email:</strong><br/><a href="mailto:estampa-tla@gmail.com">estampa-tla@gmail.com</a></p>
-    <p><strong>Teléfono:</strong><br/>(449) 574 - 5782</p>
-    <p><strong>Ubicación:</strong><br/>Aguascalientes, Ags, México</p>
-  </div>
-
-  <form class="contact-form">
-    <div class="input-group">
-      <input type="text" placeholder="Name" required />
-      <input type="email" placeholder="Email" required />
+<!-- CONTACT SPLIT -->
+<section class="contact-split">
+    <!-- INFO BLOCK -->
+    <div class="contact-info-block">
+        <h2>CENTRO DE<br>OPERACIONES</h2>
+        
+        <div class="contact-detail">
+            <h3>CORREO</h3>
+            <p><a href="mailto:contacto@xanarchy.com">contacto@xanarchy.com</a></p>
+        </div>
+        
+        <div class="contact-detail">
+            <h3>LÍNEA DIRECTA</h3>
+            <p>+52 (449) 555 - 0199</p>
+        </div>
+        
+        <div class="contact-detail">
+            <h3>UBICACIÓN</h3>
+            <p>Aguascalientes, Ags, México</p>
+        </div>
+        
+        <div class="contact-socials">
+            <a href="#"><img src="Imagenes/Iconos/Instagram.png" alt="Instagram" /></a>
+            <a href="#"><img src="Imagenes/Iconos/Twitter.png" alt="Twitter" /></a>
+            <a href="#"><img src="Imagenes/Iconos/Facebook.png" alt="Facebook" /></a>
+        </div>
     </div>
-    <div class="input-group">
-      <input type="tel" placeholder="Phone" />
-      <input type="text" placeholder="Company" />
+    
+    <!-- FORM BLOCK -->
+    <div class="contact-form-block">
+        <form class="xanarchy-form">
+            <h2>ENVIAR TRANSMISIÓN</h2>
+            <div class="form-group">
+                <input type="text" id="name" name="name" placeholder="NOMBRE" required />
+            </div>
+            <div class="form-group">
+                <input type="email" id="email" name="email" placeholder="EMAIL" required />
+            </div>
+            <div class="form-group">
+                <textarea id="message" name="message" rows="4" placeholder="MENSAJE" required></textarea>
+            </div>
+            <button type="submit" class="btn-primary-luxury">ENVIAR</button>
+        </form>
     </div>
-    <textarea placeholder="Message" rows="5" required></textarea>
-    <button type="submit">SEND MESSAGE →</button>
-  </form>
 </section>
 
 <?php require_once 'includes/footer.php'; ?>
-
 </body>
 </html>

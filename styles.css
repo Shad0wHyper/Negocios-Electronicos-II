@@ -3483,3 +3483,436 @@ body.xanarchy-home {
         font-size: 2.5rem;
     }
 }
+
+/* ==========================================================================
+   REDISEÑO V2 - ABOUT PAGE (EL MANIFIESTO)
+   ========================================================================== */
+
+/* HOME BODY OVERRIDES */
+body.xanarchy-manifesto-page {
+    background-color: #f7f7f7;
+    margin: 0;
+    padding: 0;
+}
+
+/* HERO MANIFESTO */
+.manifesto-hero {
+    position: relative;
+    width: 100%;
+    height: 80vh; /* Not full height, more cinematic */
+    display: flex;
+    align-items: flex-end; /* Text at bottom */
+    padding-bottom: 80px;
+    box-sizing: border-box;
+    overflow: hidden;
+    z-index: 1;
+    background-color: #111111;
+}
+
+.manifesto-hero-bg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: -2;
+}
+
+.manifesto-hero-bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    filter: grayscale(80%) brightness(0.6);
+}
+
+.manifesto-hero .hero-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(to top, rgba(17,17,17,1) 0%, rgba(17,17,17,0) 50%);
+    z-index: -1;
+}
+
+.manifesto-hero-content {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px;
+    color: #ffffff;
+    z-index: 1;
+}
+
+.manifesto-hero-content h1 {
+    font-size: 6rem;
+    font-weight: 900;
+    line-height: 0.85;
+    letter-spacing: -2px;
+    margin: 0 0 20px 0;
+}
+
+.manifesto-hero-content p {
+    font-size: 1.25rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #2563eb;
+    margin: 0;
+    font-weight: 700;
+}
+
+/* VALUES GRID */
+.manifesto-values {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    background-color: #111111;
+}
+
+.value-block {
+    padding: 100px 10%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.value-block h2 {
+    font-size: 2.5rem;
+    font-weight: 900;
+    margin-bottom: 24px;
+    letter-spacing: -1px;
+}
+
+.value-block p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    margin: 0;
+}
+
+.black-block {
+    background-color: #111111;
+    color: #ffffff;
+}
+.black-block p { color: #a1a1aa; }
+
+.blue-block {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+.blue-block p { color: #e0e7ff; }
+
+.white-block {
+    background-color: #ffffff;
+    color: #111111;
+}
+.white-block p { color: #666666; }
+
+.image-block {
+    padding: 0;
+    position: relative;
+    min-height: 400px;
+}
+.image-block img {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    filter: grayscale(100%) contrast(1.2);
+}
+
+/* ARCHITECTS SECTION */
+.architects-section {
+    padding: 120px 20px;
+    background-color: #ffffff;
+}
+
+.architects-header {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto 80px auto;
+}
+
+.architects-header h2 {
+    font-size: 3rem;
+    font-weight: 900;
+    letter-spacing: -1px;
+    margin: 0 0 20px 0;
+    color: #111111;
+}
+
+.architects-header p {
+    font-size: 1.1rem;
+    color: #666666;
+    margin: 0;
+}
+
+.architects-grid {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+}
+
+.architect-card {
+    flex: 1;
+    min-width: 300px;
+    max-width: 450px;
+    display: flex;
+    flex-direction: column;
+}
+
+.architect-image {
+    width: 100%;
+    aspect-ratio: 3/4;
+    overflow: hidden;
+    margin-bottom: 30px;
+    background-color: #111111;
+}
+
+.architect-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.architect-card:hover .architect-image img {
+    transform: scale(1.05);
+}
+
+.architect-info h3 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+    margin: 0 0 10px 0;
+    color: #111111;
+}
+
+.architect-role {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #2563eb;
+    text-transform: uppercase;
+}
+
+/* RESPONSIVE MANIFESTO */
+@media (max-width: 1024px) {
+    .manifesto-hero-content h1 {
+        font-size: 4rem;
+    }
+}
+@media (max-width: 768px) {
+    .manifesto-values {
+        grid-template-columns: 1fr;
+    }
+    .manifesto-hero-content h1 {
+        font-size: 3rem;
+    }
+    .manifesto-hero {
+        height: 60vh;
+    }
+}
+
+/* ==========================================================================
+   REDISEÑO V2 - CONTACT PAGE (CONEXIÓN)
+   ========================================================================== */
+body.xanarchy-contact-page {
+    background-color: #f7f7f7;
+    margin: 0;
+    padding: 0;
+}
+
+/* HERO CONTACT */
+.contact-hero {
+    position: relative;
+    width: 100%;
+    height: 50vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    z-index: 1;
+    background-color: #111111;
+}
+
+.contact-hero-bg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: -2;
+}
+
+.contact-hero-bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    filter: grayscale(100%) brightness(0.5) contrast(1.2);
+}
+
+.contact-hero .hero-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(to top, rgba(17,17,17,0.8) 0%, rgba(17,17,17,0) 100%);
+    z-index: -1;
+}
+
+.contact-hero-content {
+    text-align: center;
+    color: #ffffff;
+    z-index: 1;
+    padding: 0 20px;
+}
+
+.contact-hero-content h1 {
+    font-size: 5rem;
+    font-weight: 900;
+    letter-spacing: -1px;
+    margin: 0 0 10px 0;
+}
+
+.contact-hero-content p {
+    font-size: 1.2rem;
+    letter-spacing: 4px;
+    color: #2563eb;
+    margin: 0;
+    font-weight: 700;
+}
+
+/* CONTACT SPLIT */
+.contact-split {
+    display: flex;
+    min-height: 500px;
+}
+
+/* INFO BLOCK */
+.contact-info-block {
+    flex: 1;
+    background-color: #111111;
+    color: #ffffff;
+    padding: 80px 10%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.contact-info-block h2 {
+    font-size: 2.5rem;
+    font-weight: 900;
+    margin-bottom: 50px;
+    color: #ffffff;
+}
+
+.contact-detail {
+    margin-bottom: 30px;
+}
+
+.contact-detail h3 {
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    color: #2563eb;
+    margin: 0 0 5px 0;
+    text-transform: uppercase;
+}
+
+.contact-detail p {
+    font-size: 1.2rem;
+    margin: 0;
+    color: #a1a1aa;
+}
+
+.contact-detail a {
+    color: #a1a1aa;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.contact-detail a:hover {
+    color: #ffffff;
+}
+
+.contact-socials {
+    margin-top: 40px;
+    display: flex;
+    gap: 20px;
+}
+
+.contact-socials img {
+    width: 24px;
+    height: 24px;
+    filter: invert(1);
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.contact-socials a:hover img {
+    opacity: 1;
+}
+
+/* FORM BLOCK */
+.contact-form-block {
+    flex: 1;
+    background-color: #ffffff;
+    padding: 80px 10%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.xanarchy-form {
+    width: 100%;
+    max-width: 500px;
+}
+
+.xanarchy-form h2 {
+    font-size: 2rem;
+    font-weight: 900;
+    margin-bottom: 40px;
+    color: #111111;
+}
+
+.form-group {
+    margin-bottom: 30px;
+}
+
+.xanarchy-form input,
+.xanarchy-form textarea {
+    width: 100%;
+    padding: 15px 0;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid #e5e7eb;
+    font-family: inherit;
+    font-size: 1rem;
+    color: #111111;
+    transition: border-color 0.3s ease;
+}
+
+.xanarchy-form input:focus,
+.xanarchy-form textarea:focus {
+    outline: none;
+    border-bottom-color: #2563eb;
+}
+
+.xanarchy-form input::placeholder,
+.xanarchy-form textarea::placeholder {
+    color: #9ca3af;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+.xanarchy-form .btn-primary-luxury {
+    width: 100%;
+    margin-top: 20px;
+}
+
+/* RESPONSIVE CONTACT */
+@media (max-width: 992px) {
+    .contact-split {
+        flex-direction: column;
+    }
+    .contact-hero-content h1 {
+        font-size: 3.5rem;
+    }
+}
