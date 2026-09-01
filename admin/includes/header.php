@@ -9,7 +9,7 @@ $userInitial = strtoupper(substr($userName, 0, 1));
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Xanarchy Admin</title><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>XANARCHY Admin</title><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <style type="text/tailwindcss">
         :root {--primary-color: #3d98f4;--primary-color-hover: #2b7ed6;--background-color: #f8fafc;--sidebar-bg: #ffffff;--text-primary: #1e293b;--text-secondary: #64748b;--border-color: #e2e8f0;}
         body { font-family: 'Inter', sans-serif; background-color: var(--background-color); }
