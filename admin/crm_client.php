@@ -120,8 +120,15 @@ require_once __DIR__ . '/includes/header.php';
                         <p class="text-gray-500 text-sm">Registrado: <?php echo date("d M Y", strtotime($client['created_at'])); ?></p>
                     </div>
                 </div>
-                <div class="border-t pt-4 space-y-2">
+                <div class="border-t pt-4 space-y-4">
                     <p class="text-sm text-gray-700"><strong>Email:</strong> <a href="mailto:<?php echo htmlspecialchars($client['email']); ?>" class="text-[var(--primary-color)] hover:underline"><?php echo htmlspecialchars($client['email']); ?></a></p>
+                    
+                    <!-- Botones de Acción Rápida -->
+                    <div class="flex gap-2">
+                        <a href="mailto:<?php echo htmlspecialchars($client['email']); ?>?subject=Información de Xanarchy" target="_blank" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-semibold py-2 px-4 rounded border text-center transition-colors">
+                            ✉️ Enviar Correo
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -210,8 +217,8 @@ require_once __DIR__ . '/includes/header.php';
                                 <select name="type" id="type" class="w-full border-gray-300 rounded-md shadow-sm focus:border-[var(--primary-color)] focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-gray-700" required>
                                     <option value="Nota Interna">Nota Interna</option>
                                     <option value="Correo">Correo Electrónico</option>
-                                    <option value="Llamada">Llamada</option>
-                                    <option value="Reunión">Reunión</option>
+                                    <option value="Redes">Mensaje (Redes Sociales)</option>
+                                    <option value="Soporte">Problema / Soporte</option>
                                 </select>
                             </div>
                             <div class="w-full sm:w-2/3">
@@ -238,8 +245,10 @@ require_once __DIR__ . '/includes/header.php';
                                     <div class="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
                                         <?php if($inter['type'] == 'Correo'): ?>
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                                        <?php elseif($inter['type'] == 'Llamada'): ?>
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                                        <?php elseif($inter['type'] == 'Soporte'): ?>
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                        <?php elseif($inter['type'] == 'Redes'): ?>
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
                                         <?php else: ?>
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                         <?php endif; ?>
