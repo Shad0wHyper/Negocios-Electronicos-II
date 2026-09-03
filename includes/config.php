@@ -3,7 +3,7 @@
 
 // Parámetros de conexión
 define('DB_HOST', '127.0.0.1');
-define('DB_NAME', 'estampa_db');
+define('DB_NAME', 'xanarchy_bd');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 
