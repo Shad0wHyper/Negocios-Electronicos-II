@@ -65,7 +65,13 @@ require_once __DIR__ . '/includes/header.php';
 ?>
 
 <div class="max-w-7xl mx-auto">
-    <h2 class="text-3xl font-bold text-[var(--text-primary)] mb-8">CRM - Gestión de Clientes</h2>
+    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
+        <h2 class="text-3xl font-bold text-[var(--text-primary)]">CRM - Gestión de Clientes</h2>
+        <a href="activity.php" class="inline-flex items-center justify-center gap-2 rounded-md bg-[var(--primary-color)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--primary-color-hover)]">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            Mi actividad
+        </a>
+    </div>
 
     <!-- Resumen y Gráfica -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
