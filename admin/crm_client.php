@@ -62,6 +62,26 @@ $ordersStmt = $pdo->prepare("SELECT id, total, status, created_at FROM orders WH
 $ordersStmt->execute([$clientId]);
 $orders = $ordersStmt->fetchAll();
 
+// Obtener el producto que el cliente ha comprado más veces
+$favoriteProductStmt = $pdo->prepare("
+    SELECT
+        p.id,
+        p.name,
+        p.image,
+        p.price,
+        SUM(oi.quantity) AS total_quantity,
+        COUNT(DISTINCT oi.order_id) AS order_count
+    FROM order_items oi
+    INNER JOIN orders o ON o.id = oi.order_id
+    INNER JOIN products p ON p.id = oi.product_id
+    WHERE o.user_id = ?
+    GROUP BY p.id, p.name, p.image, p.price
+    ORDER BY total_quantity DESC, order_count DESC, p.name ASC
+    LIMIT 1
+");
+$favoriteProductStmt->execute([$clientId]);
+$favoriteProduct = $favoriteProductStmt->fetch();
+
 // Obtener interacciones
 $interStmt = $pdo->prepare("
     SELECT ci.type, ci.description, ci.created_at, u.name as admin_name 
@@ -151,6 +171,35 @@ require_once __DIR__ . '/includes/header.php';
                         Guardar Cambios
                     </button>
                 </form>
+            </div>
+
+            <!-- Producto más comprado -->
+            <div class="bg-white shadow-sm rounded-lg border border-[var(--border-color)] overflow-hidden">
+                <div class="p-4 border-b bg-gray-50 flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-800">Producto más comprado</h3>
+                    <span class="rounded-full bg-yellow-100 px-2 py-1 text-xs font-semibold text-yellow-700">Destacado</span>
+                </div>
+                <?php if ($favoriteProduct): ?>
+                    <div class="p-6">
+                        <?php if (!empty($favoriteProduct['image'])): ?>
+                            <img
+                                src="../<?php echo htmlspecialchars(ltrim($favoriteProduct['image'], '/')); ?>"
+                                alt="<?php echo htmlspecialchars($favoriteProduct['name']); ?>"
+                                class="mb-4 h-48 w-full rounded-lg border border-gray-200 object-cover"
+                            >
+                        <?php endif; ?>
+                        <h4 class="text-lg font-bold text-gray-900"><?php echo htmlspecialchars($favoriteProduct['name']); ?></h4>
+                        <p class="mt-1 text-sm text-gray-500">
+                            <?php echo number_format((int)$favoriteProduct['total_quantity']); ?> unidades en
+                            <?php echo number_format((int)$favoriteProduct['order_count']); ?> pedidos
+                        </p>
+                        <a href="../product.php?id=<?php echo (int)$favoriteProduct['id']; ?>" class="mt-4 inline-flex w-full items-center justify-center rounded-md border border-[var(--primary-color)] px-4 py-2 text-sm font-semibold text-[var(--primary-color)] hover:bg-blue-50">
+                            Ver producto
+                        </a>
+                    </div>
+                <?php else: ?>
+                    <p class="p-6 text-center text-sm text-gray-500">Este cliente aún no ha comprado productos.</p>
+                <?php endif; ?>
             </div>
         </div>
 
