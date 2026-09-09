@@ -7,6 +7,7 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     exit;
 }
 $userId = (int)$_GET['id'];
+$returnToCrm = isset($_GET['return']) && $_GET['return'] === 'crm';
 
 // Obtener los datos actuales del usuario
 $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
@@ -14,7 +15,7 @@ $stmt->execute([$userId]);
 $user = $stmt->fetch();
 
 if (!$user) {
-    header('Location: users.php');
+    header('Location: ' . ($returnToCrm ? 'crm_client.php?id=' . $userId : 'users.php'));
     exit;
 }
 
@@ -63,7 +64,7 @@ require_once __DIR__ . '/includes/header.php';
 ?>
 
     <div class="max-w-4xl mx-auto">
-        <h2 class="text-3xl font-bold text-[var(--text-primary)] mb-8">Editar Usuario</h2>
+        <h2 class="text-3xl font-bold text-[var(--text-primary)] mb-8"><?php echo $returnToCrm ? 'Editar Cliente' : 'Editar Usuario'; ?></h2>
 
         <?php if ($error): ?>
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
@@ -71,7 +72,7 @@ require_once __DIR__ . '/includes/header.php';
             </div>
         <?php endif; ?>
 
-        <form action="edit_user.php?id=<?php echo $userId; ?>" method="POST" class="bg-white p-8 rounded-lg shadow-sm border border-[var(--border-color)] space-y-6">
+        <form action="edit_user.php?id=<?php echo $userId; ?><?php echo $returnToCrm ? '&return=crm' : ''; ?>" method="POST" class="bg-white p-8 rounded-lg shadow-sm border border-[var(--border-color)] space-y-6">
 
             <div>
                 <label for="name" class="block text-sm font-medium text-gray-700">Nombre Completo</label>
@@ -97,7 +98,7 @@ require_once __DIR__ . '/includes/header.php';
             </div>
 
             <div class="text-right">
-                <a href="users.php" class="text-gray-600 mr-4">Cancelar</a>
+                <a href="<?php echo $returnToCrm ? 'crm_client.php?id=' . $userId : 'users.php'; ?>" class="text-gray-600 mr-4">Cancelar</a>
                 <button type="submit" class="inline-flex justify-center py-2 px-6 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)]">
                     Guardar Cambios
                 </button>
