@@ -5,7 +5,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $quantities = $_POST['quantities'] ?? [];
 
     foreach ($quantities as $id => $qty) {
-        $id = (int)$id;
+        $id = trim($id);
         $qty = (int)$qty;
         if ($qty > 0) {
             $_SESSION['cart'][$id] = $qty;

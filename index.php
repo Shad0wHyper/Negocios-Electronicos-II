@@ -15,7 +15,7 @@
 <!-- HERO FULLSCREEN -->
 <section class="hero-fullscreen">
     <div class="hero-background">
-        <img src="Imagenes/hero_v2.jpg" alt="Xanarchy Hero" />
+        <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2Fhero_v2.jpg?alt=media" alt="Xanarchy Hero" />
         <div class="hero-overlay"></div>
     </div>
     <div class="hero-content">
@@ -29,19 +29,19 @@
 <section class="lookbook-section">
     <div class="lookbook-grid">
         <a href="shop.php?category=Caballero" class="lookbook-item">
-            <img src="Imagenes/Caballero_v2.jpg" alt="Caballero" />
+            <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FCaballero_v2.jpg?alt=media" alt="Caballero" />
             <div class="lookbook-label">CABALLERO</div>
         </a>
         <a href="shop.php?category=Dama" class="lookbook-item">
-            <img src="Imagenes/Dama_v2.jpg" alt="Dama" />
+            <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FDama_v2.jpg?alt=media" alt="Dama" />
             <div class="lookbook-label">DAMA</div>
         </a>
         <a href="shop.php?category=Ediciones Limitadas" class="lookbook-item">
-            <img src="Imagenes/Ediciones_Limitadas_v2.jpg" alt="Ediciones Limitadas" />
+            <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FEdiciones_Limitadas_v2.jpg?alt=media" alt="Ediciones Limitadas" />
             <div class="lookbook-label">LIMITED EDITION</div>
         </a>
         <a href="shop.php?category=Colecciones" class="lookbook-item">
-            <img src="Imagenes/Colecciones_v2.jpg" alt="Colecciones" />
+            <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FColecciones_v2.jpg?alt=media" alt="Colecciones" />
             <div class="lookbook-label">COLECCIONES</div>
         </a>
     </div>
@@ -55,9 +55,24 @@
     </div>
     <div class="minimal-products-grid">
         <?php
-        $stmt = $pdo->query('SELECT id, name, price, image FROM products WHERE stock > 0 ORDER BY created_at DESC LIMIT 8');
-        $featured = $stmt->fetchAll();
-        if ($featured):
+        $productsRef = $db->collection('products');
+        $documents = $productsRef->where('stock', '>', 0)->documents();
+        $featured = [];
+        foreach ($documents as $doc) {
+            if ($doc->exists()) {
+                $p = $doc->data();
+                $p['id'] = $doc->id();
+                $featured[] = $p;
+            }
+        }
+        usort($featured, function($a, $b) {
+            $dateA = $a['created_at'] ?? '2000-01-01 00:00:00';
+            $dateB = $b['created_at'] ?? '2000-01-01 00:00:00';
+            return strtotime($dateB) - strtotime($dateA);
+        });
+        $featured = array_slice($featured, 0, 8);
+        
+        if (!empty($featured)):
             foreach ($featured as $p): ?>
                 <div class="minimal-product-card">
                     <a href="product.php?id=<?= $p['id'] ?>" class="product-image-link">
@@ -82,7 +97,7 @@
 <!-- LUXURY SPLIT PROMO -->
 <section class="luxury-split-promo">
     <div class="split-image">
-        <img src="Imagenes/Descuento1_v2.jpg" alt="Gothic Collection" />
+        <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FDescuento1_v2.jpg?alt=media" alt="Gothic Collection" />
     </div>
     <div class="split-content">
         <span class="promo-badge">ARCHIVOS EXCLUSIVOS</span>
@@ -100,7 +115,7 @@
         <a href="about.php" class="link-luxury">CONOCE EL MANIFIESTO</a>
     </div>
     <div class="editorial-image">
-        <img src="Imagenes/quienes_somos_v2.jpg" alt="Identidad Xanarchy" />
+        <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2Fquienes_somos_v2.jpg?alt=media" alt="Identidad Xanarchy" />
     </div>
 </section>
 
@@ -111,9 +126,24 @@
     </div>
     <div class="minimal-products-grid cols-4">
         <?php
-        $stmt = $pdo->query('SELECT id, name, price, image, description FROM products WHERE stock > 0 ORDER BY created_at DESC LIMIT 4');
-        $newDesigns = $stmt->fetchAll();
-        if ($newDesigns):
+        $productsRef = $db->collection('products');
+        $documents = $productsRef->where('stock', '>', 0)->documents();
+        $newDesigns = [];
+        foreach ($documents as $doc) {
+            if ($doc->exists()) {
+                $p = $doc->data();
+                $p['id'] = $doc->id();
+                $newDesigns[] = $p;
+            }
+        }
+        usort($newDesigns, function($a, $b) {
+            $dateA = $a['created_at'] ?? '2000-01-01 00:00:00';
+            $dateB = $b['created_at'] ?? '2000-01-01 00:00:00';
+            return strtotime($dateB) - strtotime($dateA);
+        });
+        $newDesigns = array_slice($newDesigns, 0, 4);
+
+        if (!empty($newDesigns)):
             foreach ($newDesigns as $product): ?>
                 <div class="minimal-product-card">
                     <a href="product.php?id=<?= $product['id'] ?>" class="product-image-link">

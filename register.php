@@ -23,21 +23,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (empty($name)) {
         $error = 'El nombre no puede estar vacío.';
     } else {
-        $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ?');
-        $stmt->execute([$email]);
-        if ($stmt->fetch()) {
+        $usersRef = $db->collection('users');
+        $query = $usersRef->where('email', '=', $email)->limit(1);
+        $documents = $query->documents();
+        
+        $emailExists = false;
+        foreach ($documents as $document) {
+            if ($document->exists()) {
+                $emailExists = true;
+                break;
+            }
+        }
+
+        if ($emailExists) {
             $error = 'Este correo ya está registrado.';
         } else {
             // Insertar nuevo usuario
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare(
-                'INSERT INTO users (name, email, password) VALUES (?, ?, ?)'
-            );
-            $stmt->execute([$name, $email, $hash]);
+            $newUserRef = $usersRef->add([
+                'name' => $name,
+                'email' => $email,
+                'password' => $hash,
+                'role' => 'customer',
+                'crm_stage' => 'Prospecto',
+                'crm_stage_manual' => false,
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
 
             // Loguear automáticamente
             $_SESSION['user'] = [
-                'id'    => $pdo->lastInsertId(),
+                'id'    => $newUserRef->id(),
                 'name'  => $name,
                 'email' => $email,
                 'role'  => 'customer'
@@ -67,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="login-form-container">
             <a href="index.php" class="login-logo-link" title="Volver a la tienda">
                 <span class="back-arrow">←</span>
-                <img src="Imagenes/Logo_Final.png" alt="Xanarchy Logo" class="login-logo">
+                <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FLogo_Final.png?alt=media" alt="Xanarchy Logo" class="login-logo">
             </a>
 
             <div class="form-wrapper">

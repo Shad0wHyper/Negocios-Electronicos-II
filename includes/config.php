@@ -1,26 +1,25 @@
 <?php
 // includes/config.php
 
-// Parámetros de conexión
-define('DB_HOST', '127.0.0.1');
-define('DB_NAME', 'xanarchy_bd');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+require_once __DIR__ . '/../vendor/autoload.php';
 
-// Conexión PDO
+use Kreait\Firebase\Factory;
+
+// Evitar que grpc intente usar credenciales por defecto (ADC) antes de que Factory las establezca
+putenv('GOOGLE_APPLICATION_CREDENTIALS=' . __DIR__ . '/../firebase_credentials.json');
+
 try {
-    $pdo = new PDO(
-        "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8",
-        DB_USER,
-        DB_PASS,
-        [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-        ]
-    );
-} catch (PDOException $e) {
-    die("Error de conexión BD: " . $e->getMessage());
+    $factory = (new Factory)
+        ->withServiceAccount(__DIR__ . '/../firebase_credentials.json')
+        ->withDefaultStorageBucket('xanarchy-store.firebasestorage.app');
+    $firestore = $factory->createFirestore();
+    $db = $firestore->database();
+    $storage = $factory->createStorage();
+    $bucket = $storage->getBucket();
+} catch (Exception $e) {
+    die("Error de conexión Firebase: " . $e->getMessage());
 }
+
 
 // Iniciar sesión
 if (session_status() === PHP_SESSION_NONE) {

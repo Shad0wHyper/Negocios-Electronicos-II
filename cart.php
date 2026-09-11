@@ -1,19 +1,26 @@
 <?php
 require_once 'includes/config.php';
 
-// Función para obtener los productos desde la BD
-function getProductsByIds($pdo, $ids) {
+// Función para obtener los productos desde Firestore
+function getProductsByIds($db, $ids) {
     if (empty($ids)) return [];
-    $placeholders = implode(',', array_fill(0, count($ids), '?'));
-    $stmt = $pdo->prepare("SELECT * FROM products WHERE id IN ($placeholders)");
-    $stmt->execute($ids);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $products = [];
+    $productsRef = $db->collection('products');
+    foreach ($ids as $id) {
+        $doc = $productsRef->document($id)->snapshot();
+        if ($doc->exists()) {
+            $p = $doc->data();
+            $p['id'] = $doc->id();
+            $products[] = $p;
+        }
+    }
+    return $products;
 }
 
 // Obtener carrito de sesión
 $cart = $_SESSION['cart'] ?? [];
 $product_ids = array_keys($cart);
-$products = getProductsByIds($pdo, $product_ids);
+$products = getProductsByIds($db, $product_ids);
 
 $total = 0;
 ?>

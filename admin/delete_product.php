@@ -2,27 +2,33 @@
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
 // 1. Validar y obtener el ID del producto de la URL
-if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
+if (!isset($_GET['id']) || empty($_GET['id'])) {
     header('Location: products.php');
     exit;
 }
-$productId = (int)$_GET['id'];
+$productId = trim($_GET['id']);
 
-// 2. Obtener la ruta de la imagen antes de borrar el registro
-$stmt = $pdo->prepare("SELECT image FROM products WHERE id = ?");
-$stmt->execute([$productId]);
-$product = $stmt->fetch();
+$productRef = $db->collection('products')->document($productId);
+$doc = $productRef->snapshot();
 
-if ($product) {
-    // 3. Borrar el archivo de imagen del servidor para no dejar basura
-    $imagePath = __DIR__ . '/../' . $product['image'];
-    if (file_exists($imagePath)) {
-        unlink($imagePath);
+if ($doc->exists()) {
+    $product = $doc->data();
+    // Extraer nombre del archivo del URL
+    if (isset($product['image']) && strpos($product['image'], 'firebasestorage') !== false) {
+        $parsedUrl = parse_url($product['image']);
+        $path = $parsedUrl['path'];
+        $pathParts = explode('/o/', $path);
+        if (count($pathParts) > 1) {
+            $objectName = urldecode($pathParts[1]);
+            // Opcional: Borrar de Storage si es posible
+            try {
+                $bucket->object($objectName)->delete();
+            } catch(Exception $e) {}
+        }
     }
 
-    // 4. Borrar el producto de la base de datos
-    $deleteStmt = $pdo->prepare("DELETE FROM products WHERE id = ?");
-    $deleteStmt->execute([$productId]);
+    // Borrar el producto de la base de datos Firestore
+    $productRef->delete();
 }
 
 // 5. Redirigir de vuelta a la lista de productos

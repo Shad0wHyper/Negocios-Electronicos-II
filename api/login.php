@@ -32,10 +32,19 @@ if ($method === 'POST') {
     }
 
     try {
-        // Buscar el usuario en la BD (Mismo código que tienes en tu login.php original)
-        $stmt = $pdo->prepare('SELECT id, name, email, password, role FROM users WHERE email = ?');
-        $stmt->execute([$email]);
-        $user = $stmt->fetch();
+        // Buscar el usuario en la BD Firestore
+        $usersRef = $db->collection('users');
+        $query = $usersRef->where('email', '=', $email)->limit(1);
+        $documents = $query->documents();
+        
+        $user = null;
+        foreach ($documents as $document) {
+            if ($document->exists()) {
+                $user = $document->data();
+                $user['id'] = $document->id();
+                break;
+            }
+        }
 
         if ($user && password_verify($pass, $user['password'])) {
             unset($user['password']); // IMPORTANTE: Nunca enviar la contraseña por la API
@@ -51,9 +60,9 @@ if ($method === 'POST') {
             http_response_code(401); // 401 Unauthorized
             echo json_encode(["status" => "error", "message" => "Email o contraseña incorrectos."]);
         }
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode(["status" => "error", "message" => "Error de base de datos."]);
+        echo json_encode(["status" => "error", "message" => "Error de base de datos.", "details" => $e->getMessage()]);
     }
 
 } else {

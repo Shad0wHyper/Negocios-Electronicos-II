@@ -3,19 +3,23 @@ require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
 
 // Validar ID
-if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
+if (!isset($_GET['id']) || empty($_GET['id'])) {
     header('Location: crm.php');
     exit;
 }
 
-$clientId = (int)$_GET['id'];
+$clientId = trim($_GET['id']);
 
 // Obtener datos del cliente
-$stmt = $pdo->prepare("SELECT id, name, email, crm_stage, created_at FROM users WHERE id = ? AND role = 'customer'");
-$stmt->execute([$clientId]);
-$client = $stmt->fetch();
+$clientDoc = $db->collection('users')->document($clientId)->snapshot();
+if (!$clientDoc->exists()) {
+    header('Location: crm.php');
+    exit;
+}
+$client = $clientDoc->data();
+$client['id'] = $clientDoc->id();
 
-if (!$client) {
+if (($client['role'] ?? '') !== 'customer') {
     header('Location: crm.php');
     exit;
 }
@@ -30,11 +34,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $newStage = $_POST['crm_stage'];
             $validStages = ['Prospecto', 'Activo', 'Frecuente', 'Inactivo'];
             if (in_array($newStage, $validStages)) {
-                $updStmt = $pdo->prepare("UPDATE users SET crm_stage = ?, crm_stage_manual = 1 WHERE id = ?");
-                if ($updStmt->execute([$newStage, $clientId])) {
+                try {
+                    $db->collection('users')->document($clientId)->set([
+                        'crm_stage' => $newStage,
+                        'crm_stage_manual' => true
+                    ], ['merge' => true]);
                     $client['crm_stage'] = $newStage; // Actualizar vista local
                     $message = 'Etapa CRM actualizada manualmente.';
-                } else {
+                } catch (Exception $e) {
                     $error = 'Error al actualizar la etapa.';
                 }
             }
@@ -44,10 +51,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $adminId = $_SESSION['user']['id'];
             
             if (!empty($description)) {
-                $insStmt = $pdo->prepare("INSERT INTO crm_interactions (user_id, admin_id, type, description) VALUES (?, ?, ?, ?)");
-                if ($insStmt->execute([$clientId, $adminId, $type, $description])) {
+                try {
+                    $db->collection('crm_interactions')->add([
+                        'user_id' => $clientId,
+                        'admin_id' => (string)$adminId,
+                        'admin_name' => $_SESSION['user']['name'],
+                        'type' => $type,
+                        'description' => $description,
+                        'created_at' => date('Y-m-d H:i:s')
+                    ]);
                     $message = 'Interacción registrada correctamente.';
-                } else {
+                } catch (Exception $e) {
                     $error = 'Error al registrar la interacción.';
                 }
             } else {
@@ -57,41 +71,74 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Obtener pedidos del cliente
-$ordersStmt = $pdo->prepare("SELECT id, total, status, created_at FROM orders WHERE user_id = ? ORDER BY created_at DESC");
-$ordersStmt->execute([$clientId]);
-$orders = $ordersStmt->fetchAll();
+// Obtener pedidos del cliente y calcular producto favorito
+$ordersQuery = $db->collection('orders')->where('user_id', '=', $clientId);
+$ordersDocs = $ordersQuery->documents();
+$orders = [];
+$productStats = [];
 
-// Obtener el producto que el cliente ha comprado más veces
-$favoriteProductStmt = $pdo->prepare("
-    SELECT
-        p.id,
-        p.name,
-        p.image,
-        p.price,
-        SUM(oi.quantity) AS total_quantity,
-        COUNT(DISTINCT oi.order_id) AS order_count
-    FROM order_items oi
-    INNER JOIN orders o ON o.id = oi.order_id
-    INNER JOIN products p ON p.id = oi.product_id
-    WHERE o.user_id = ?
-    GROUP BY p.id, p.name, p.image, p.price
-    ORDER BY total_quantity DESC, order_count DESC, p.name ASC
-    LIMIT 1
-");
-$favoriteProductStmt->execute([$clientId]);
-$favoriteProduct = $favoriteProductStmt->fetch();
+foreach ($ordersDocs as $doc) {
+    if ($doc->exists()) {
+        $o = $doc->data();
+        $o['id'] = $doc->id();
+        $orders[] = $o;
+        
+        if (isset($o['items']) && is_array($o['items'])) {
+            foreach ($o['items'] as $item) {
+                $pid = $item['product_id'];
+                if (!isset($productStats[$pid])) {
+                    $productStats[$pid] = ['total_quantity' => 0, 'order_count' => 0];
+                }
+                $productStats[$pid]['total_quantity'] += (int)$item['quantity'];
+                $productStats[$pid]['order_count']++; // Simplified: count per line item occurrence
+            }
+        }
+    }
+}
+
+// Sort orders by date DESC
+usort($orders, function($a, $b) {
+    return strtotime($b['created_at'] ?? '0') - strtotime($a['created_at'] ?? '0');
+});
+
+// Encontrar producto favorito
+$favoriteProduct = null;
+if (!empty($productStats)) {
+    $bestPid = null;
+    $bestQty = -1;
+    foreach ($productStats as $pid => $stats) {
+        if ($stats['total_quantity'] > $bestQty) {
+            $bestQty = $stats['total_quantity'];
+            $bestPid = $pid;
+        }
+    }
+    
+    if ($bestPid) {
+        $pDoc = $db->collection('products')->document($bestPid)->snapshot();
+        if ($pDoc->exists()) {
+            $favoriteProduct = $pDoc->data();
+            $favoriteProduct['id'] = $pDoc->id();
+            $favoriteProduct['total_quantity'] = $productStats[$bestPid]['total_quantity'];
+            $favoriteProduct['order_count'] = $productStats[$bestPid]['order_count'];
+        }
+    }
+}
 
 // Obtener interacciones
-$interStmt = $pdo->prepare("
-    SELECT ci.type, ci.description, ci.created_at, u.name as admin_name 
-    FROM crm_interactions ci 
-    JOIN users u ON ci.admin_id = u.id 
-    WHERE ci.user_id = ? 
-    ORDER BY ci.created_at DESC
-");
-$interStmt->execute([$clientId]);
-$interactions = $interStmt->fetchAll();
+$interQuery = $db->collection('crm_interactions')->where('user_id', '=', $clientId);
+$interDocs = $interQuery->documents();
+$interactions = [];
+
+foreach ($interDocs as $doc) {
+    if ($doc->exists()) {
+        $interactions[] = $doc->data();
+    }
+}
+
+// Sort interactions by date DESC
+usort($interactions, function($a, $b) {
+    return strtotime($b['created_at'] ?? '0') - strtotime($a['created_at'] ?? '0');
+});
 
 // Colores para las etiquetas de estado
 $stageColors = [
@@ -186,7 +233,7 @@ require_once __DIR__ . '/includes/header.php';
                     <div class="p-6">
                         <?php if (!empty($favoriteProduct['image'])): ?>
                             <img
-                                src="../<?php echo htmlspecialchars(ltrim($favoriteProduct['image'], '/')); ?>"
+                                src="<?php echo htmlspecialchars($favoriteProduct['image']); ?>"
                                 alt="<?php echo htmlspecialchars($favoriteProduct['name']); ?>"
                                 class="mb-4 h-48 w-full rounded-lg border border-gray-200 object-cover"
                             >

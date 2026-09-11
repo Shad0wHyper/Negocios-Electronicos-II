@@ -2,8 +2,16 @@
 // 1. Incluir archivos de configuración y autenticación
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
-// 2. Obtener todos los productos de la base de datos
-$products = $pdo->query("SELECT id, name, price, stock, image FROM products ORDER BY created_at DESC")->fetchAll();
+// 2. Obtener todos los productos de Firestore
+$products = [];
+$documents = $db->collection('products')->orderBy('created_at', 'DESC')->documents();
+foreach ($documents as $doc) {
+    if ($doc->exists()) {
+        $p = $doc->data();
+        $p['id'] = $doc->id();
+        $products[] = $p;
+    }
+}
 
 // 3. Incluir el header
 require_once __DIR__ . '/includes/header.php';
@@ -35,7 +43,7 @@ require_once __DIR__ . '/includes/header.php';
                         <?php foreach($products as $product): ?>
                             <tr class="bg-white border-b hover:bg-gray-50">
                                 <td class="px-6 py-4">
-                                    <img src="../<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="h-12 w-12 object-cover rounded">                                <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                                    <img src="<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="h-12 w-12 object-cover rounded">                                <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                                     <?php echo htmlspecialchars($product['name']); ?>
                                 </th>
                                 <td class="px-6 py-4">$<?php echo number_format($product['price'], 2); ?></td>

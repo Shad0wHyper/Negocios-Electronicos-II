@@ -15,7 +15,7 @@ require_once 'includes/header.php';
 <!-- HERO CONTACT -->
 <section class="contact-hero">
     <div class="contact-hero-bg">
-        <img src="Imagenes/contact_hero.jpg" alt="Contacto Xanarchy" />
+        <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2Fcontact_hero.jpg?alt=media" alt="Contacto Xanarchy" />
         <div class="hero-overlay"></div>
     </div>
     <div class="contact-hero-content">
@@ -46,9 +46,9 @@ require_once 'includes/header.php';
         </div>
         
         <div class="contact-socials">
-            <a href="#"><img src="Imagenes/Iconos/Instagram.png" alt="Instagram" /></a>
-            <a href="#"><img src="Imagenes/Iconos/Twitter.png" alt="Twitter" /></a>
-            <a href="#"><img src="Imagenes/Iconos/Facebook.png" alt="Facebook" /></a>
+            <a href="#"><img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FInstagram.png?alt=media" alt="Instagram" /></a>
+            <a href="#"><img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FTwitter.png?alt=media" alt="Twitter" /></a>
+            <a href="#"><img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FFacebook.png?alt=media" alt="Facebook" /></a>
         </div>
     </div>
     

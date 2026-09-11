@@ -1,5 +1,4 @@
 <?php
-global $pdo;
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
 $errorMessage = '';
@@ -31,28 +30,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($image['size'] > $maxSize) {
             $errorMessage = 'El archivo es demasiado grande. El máximo es 5 MB.';
         } else {
-            $imageFolder = __DIR__ . '/../Imagenes/';
             $imageExtension = pathinfo($image['name'], PATHINFO_EXTENSION);
             $newImageName = uniqid('prod_', true) . '.' . $imageExtension;
-            $targetPath = $imageFolder . $newImageName;
+            $storagePath = 'products/' . $newImageName;
 
-            if (move_uploaded_file($image['tmp_name'], $targetPath)) {
-                //Insert con Stored Procedure
-                try {
-                    $dbPath = 'Imagenes/' . $newImageName;
+            try {
+                // Subir imagen a Firebase Storage
+                $object = $bucket->upload(
+                    fopen($image['tmp_name'], 'r'),
+                    ['name' => $storagePath]
+                );
+                
+                // Obtener URL pública
+                $imageUrl = sprintf('https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media', 
+                    $bucket->name(), 
+                    rawurlencode($storagePath)
+                );
 
-                    // Stored Procedure
-                    $stmt = $pdo->prepare("CALL InsertarNuevoProducto(?, ?, ?, ?, ?)");
-                    $stmt->execute([$name, $description, $price, $stock, $dbPath]);
+                // Insertar producto en Firestore
+                $db->collection('products')->add([
+                    'name' => $name,
+                    'description' => $description,
+                    'price' => (float)$price,
+                    'stock' => (int)$stock,
+                    'image' => $imageUrl,
+                    'discount_percentage' => 0,
+                    'created_at' => date('Y-m-d H:i:s')
+                ]);
 
-                    header('Location: products.php');
-                    exit;
+                header('Location: products.php');
+                exit;
 
-                } catch (PDOException $e) {
-                    $errorMessage = "Error al guardar en la base de datos: " . $e->getMessage();
-                }
-            } else {
-                $errorMessage = 'No se pudo mover el archivo subido. Revisa los permisos de la carpeta /Imagenes.';
+            } catch (Exception $e) {
+                $errorMessage = "Error al guardar en Firebase: " . $e->getMessage();
             }
         }
     }

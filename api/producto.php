@@ -8,21 +8,22 @@ header("Access-Control-Allow-Methods: GET");
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
-    // Buscar el ID del producto en la URL, ej: api/producto.php?id=1
-    $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+    // Buscar el ID del producto en la URL
+    $id = isset($_GET['id']) ? trim($_GET['id']) : '';
 
-    if ($id <= 0) {
+    if (empty($id)) {
         http_response_code(400); // 400 Bad Request
         echo json_encode(["status" => "error", "message" => "Debes proporcionar un ID válido en la URL (?id=X)."]);
         exit;
     }
 
     try {
-        $stmt = $pdo->prepare("SELECT id, name, description, price, discount_percentage, image, stock FROM products WHERE id = ?");
-        $stmt->execute([$id]);
-        $product = $stmt->fetch();
+        $doc = $db->collection('products')->document($id)->snapshot();
 
-        if ($product) {
+        if ($doc->exists()) {
+            $product = $doc->data();
+            $product['id'] = $doc->id();
+            
             http_response_code(200);
             echo json_encode([
                 "status" => "success",
@@ -33,9 +34,9 @@ if ($method === 'GET') {
             echo json_encode(["status" => "error", "message" => "Producto no encontrado."]);
         }
 
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode(["status" => "error", "message" => "Error de base de datos."]);
+        echo json_encode(["status" => "error", "message" => "Error de base de datos.", "details" => $e->getMessage()]);
     }
 } else {
     http_response_code(405);

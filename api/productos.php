@@ -10,9 +10,18 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
     try {
-        // Obtenemos los productos de la base de datos
-        $stmt = $pdo->query("SELECT id, name, description, price, discount_percentage, image, stock FROM products");
-        $products = $stmt->fetchAll();
+        // Obtenemos los productos de Firestore
+        $productsRef = $db->collection('products');
+        $documents = $productsRef->documents();
+        
+        $products = [];
+        foreach ($documents as $doc) {
+            if ($doc->exists()) {
+                $p = $doc->data();
+                $p['id'] = $doc->id();
+                $products[] = $p;
+            }
+        }
 
         // Respondemos con los productos en formato JSON
         http_response_code(200); // 200 OK
@@ -20,7 +29,7 @@ if ($method === 'GET') {
             "status" => "success",
             "data" => $products
         ]);
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         http_response_code(500); // 500 Internal Server Error
         echo json_encode([
             "status" => "error",

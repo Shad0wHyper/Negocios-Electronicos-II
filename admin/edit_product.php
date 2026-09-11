@@ -2,22 +2,22 @@
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
 // 1. Validar y obtener el ID del producto de la URL
-if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
+if (!isset($_GET['id']) || empty($_GET['id'])) {
     header('Location: products.php');
     exit;
 }
-$productId = (int)$_GET['id'];
+$productId = trim($_GET['id']);
 
 // 2. Obtener los datos actuales del producto para mostrarlos en el formulario
-$stmt = $pdo->prepare("SELECT * FROM products WHERE id = ?");
-$stmt->execute([$productId]);
-$product = $stmt->fetch();
+$productRef = $db->collection('products')->document($productId);
+$doc = $productRef->snapshot();
 
-if (!$product) {
+if (!$doc->exists()) {
     // Si el producto no existe, redirigir a la lista
     header('Location: products.php');
     exit;
 }
+$product = $doc->data();
 
 $errorMessage = '';
 
@@ -40,22 +40,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $maxSize = 5 * 1024 * 1024; // 5 MB
 
             if (in_array($image['type'], $allowedTypes) && $image['size'] <= $maxSize) {
-                // Borrar la imagen antigua para no acumular archivos
-                $oldImagePath = __DIR__ . '/../' . $currentImage;
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
-                }
-
-                // Subir la nueva imagen
-                $imageFolder = __DIR__ . '/../Imagenes/';
+                // Subir la nueva imagen a Firebase Storage
                 $imageExtension = pathinfo($image['name'], PATHINFO_EXTENSION);
                 $newImageName = uniqid('prod_', true) . '.' . $imageExtension;
-                $targetPath = $imageFolder . $newImageName;
+                $storagePath = 'products/' . $newImageName;
 
-                if (move_uploaded_file($image['tmp_name'], $targetPath)) {
-                    $currentImage = 'Imagenes/' . $newImageName; // Actualizamos la ruta de la imagen
-                } else {
-                    $errorMessage = 'Error al mover la nueva imagen.';
+                try {
+                    $bucket->upload(
+                        fopen($image['tmp_name'], 'r'),
+                        ['name' => $storagePath]
+                    );
+                    
+                    $currentImage = sprintf('https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media', 
+                        $bucket->name(), 
+                        rawurlencode($storagePath)
+                    );
+                } catch (Exception $e) {
+                    $errorMessage = 'Error al subir la nueva imagen: ' . $e->getMessage();
                 }
             } else {
                 $errorMessage = 'Archivo de imagen no válido (tipo o tamaño).';
@@ -65,14 +66,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 5. Actualizar la base de datos (solo si no hubo errores con la imagen)
         if (empty($errorMessage)) {
             try {
-                $updateStmt = $pdo->prepare(
-                    "UPDATE products SET name = ?, description = ?, price = ?, stock = ?, image = ? WHERE id = ?"
-                );
-                $updateStmt->execute([$name, $description, $price, $stock, $currentImage, $productId]);
+                $productRef->set([
+                    'name' => $name,
+                    'description' => $description,
+                    'price' => (float)$price,
+                    'stock' => (int)$stock,
+                    'image' => $currentImage
+                ], ['merge' => true]);
 
                 header('Location: products.php');
                 exit;
-            } catch (PDOException $e) {
+            } catch (Exception $e) {
                 $errorMessage = "Error al actualizar la base de datos: " . $e->getMessage();
             }
         }
@@ -117,7 +121,7 @@ require_once __DIR__ . '/includes/header.php';
 
             <div>
                 <label class="block text-sm font-medium text-gray-700">Imagen Actual</label>
-                <img src="../<?php echo htmlspecialchars($product['image']); ?>" alt="Imagen actual" class="mt-2 h-24 w-24 object-cover rounded-md border">
+                <img src="<?php echo htmlspecialchars($product['image']); ?>" alt="Imagen actual" class="mt-2 h-24 w-24 object-cover rounded-md border">
             </div>
 
             <div>

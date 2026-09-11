@@ -2,56 +2,90 @@
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
 
-// 0. Auto-clasificar clientes (Solo los que no han sido asignados manualmente)
-// Prospecto: Sin pedidos recientes (< 3 meses)
-// Activo: 1 o 2 pedidos en los últimos 3 meses
-// Frecuente: 3 o más pedidos en los últimos 3 meses
-// Inactivo: Sin compras o creación de cuenta de hace más de 3 meses
-$autoClassifySql = "
-    UPDATE users u
-    LEFT JOIN (
-        SELECT user_id, COUNT(id) as total_orders, MAX(created_at) as last_order_date 
-        FROM orders 
-        GROUP BY user_id
-    ) o ON u.id = o.user_id
-    SET u.crm_stage = CASE
-        WHEN o.total_orders IS NOT NULL AND o.total_orders > 0 THEN
-            CASE 
-                WHEN o.last_order_date < DATE_SUB(NOW(), INTERVAL 3 MONTH) THEN 'Inactivo'
-                WHEN o.total_orders >= 3 THEN 'Frecuente'
-                ELSE 'Activo'
-            END
-        ELSE 
-            CASE 
-                WHEN u.created_at < DATE_SUB(NOW(), INTERVAL 3 MONTH) THEN 'Inactivo'
-                ELSE 'Prospecto'
-            END
-    END
-    WHERE u.role = 'customer' AND u.crm_stage_manual = 0;
-";
-$pdo->exec($autoClassifySql);
+// 0 & 1. Obtener datos y auto-clasificar
+$usersDocs = $db->collection('users')->where('role', '=', 'customer')->documents();
+$ordersDocs = $db->collection('orders')->documents();
 
-// 1. Obtener métricas
-$totalCustomers = $pdo->query("SELECT COUNT(id) FROM users WHERE role = 'customer'")->fetchColumn();
+$ordersByUser = [];
+foreach ($ordersDocs as $od) {
+    if ($od->exists()) {
+        $o = $od->data();
+        $uid = $o['user_id'] ?? '';
+        if ($uid) {
+            if (!isset($ordersByUser[$uid])) {
+                $ordersByUser[$uid] = ['count' => 0, 'last_date' => ''];
+            }
+            $ordersByUser[$uid]['count']++;
+            if (!isset($o['created_at'])) $o['created_at'] = '';
+            if ($o['created_at'] > $ordersByUser[$uid]['last_date']) {
+                $ordersByUser[$uid]['last_date'] = $o['created_at'];
+            }
+        }
+    }
+}
 
-// Distribución por etapa CRM
-$stagesQuery = $pdo->query("SELECT crm_stage, COUNT(id) as count FROM users WHERE role = 'customer' GROUP BY crm_stage");
-$stagesData = $stagesQuery->fetchAll(PDO::FETCH_KEY_PAIR);
+$stagesData = ['Prospecto' => 0, 'Activo' => 0, 'Frecuente' => 0, 'Inactivo' => 0];
+$totalCustomers = 0;
+$customers = [];
+
+foreach ($usersDocs as $ud) {
+    if ($ud->exists()) {
+        $u = $ud->data();
+        $u['id'] = $ud->id();
+        $totalCustomers++;
+        
+        $uid = $u['id'];
+        $manual = !empty($u['crm_stage_manual']) ? true : false;
+        
+        $total_orders = $ordersByUser[$uid]['count'] ?? 0;
+        $last_order_date = $ordersByUser[$uid]['last_date'] ?? null;
+        
+        // Auto-classify
+        if (!$manual) {
+            $new_stage = 'Prospecto';
+            $three_months_ago = date('Y-m-d H:i:s', strtotime('-3 months'));
+            
+            if ($total_orders > 0) {
+                if ($last_order_date < $three_months_ago) {
+                    $new_stage = 'Inactivo';
+                } elseif ($total_orders >= 3) {
+                    $new_stage = 'Frecuente';
+                } else {
+                    $new_stage = 'Activo';
+                }
+            } else {
+                if (isset($u['created_at']) && $u['created_at'] < $three_months_ago) {
+                    $new_stage = 'Inactivo';
+                } else {
+                    $new_stage = 'Prospecto';
+                }
+            }
+            
+            if (!isset($u['crm_stage']) || $u['crm_stage'] !== $new_stage) {
+                $u['crm_stage'] = $new_stage;
+                $db->collection('users')->document($uid)->set(['crm_stage' => $new_stage], ['merge' => true]);
+            }
+        }
+        
+        $stage = $u['crm_stage'] ?? 'Prospecto';
+        if (!isset($stagesData[$stage])) {
+            $stagesData[$stage] = 0;
+        }
+        $stagesData[$stage]++;
+        
+        $u['total_orders'] = $total_orders;
+        $customers[] = $u;
+    }
+}
+
+// Sort by created_at DESC
+usort($customers, function($a, $b) {
+    return strtotime($b['created_at'] ?? '0') - strtotime($a['created_at'] ?? '0');
+});
 
 // Preparar datos para gráfica
 $stageLabels = array_keys($stagesData);
 $stageCounts = array_values($stagesData);
-
-// 2. Obtener lista de clientes con su total de pedidos
-$customersQuery = "
-    SELECT u.id, u.name, u.email, u.crm_stage, COUNT(o.id) as total_orders
-    FROM users u
-    LEFT JOIN orders o ON u.id = o.user_id
-    WHERE u.role = 'customer'
-    GROUP BY u.id
-    ORDER BY u.created_at DESC
-";
-$customers = $pdo->query($customersQuery)->fetchAll();
 
 // Colores para las etiquetas de estado
 $stageColors = [

@@ -1,8 +1,16 @@
 <?php
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
-// Obtener todos los usuarios de la base de datos
-$users = $pdo->query("SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC")->fetchAll();
+// Obtener todos los usuarios de Firestore
+$users = [];
+$documents = $db->collection('users')->orderBy('created_at', 'DESC')->documents();
+foreach ($documents as $doc) {
+    if ($doc->exists()) {
+        $u = $doc->data();
+        $u['id'] = $doc->id();
+        $users[] = $u;
+    }
+}
 
 // Incluir el header
 require_once __DIR__ . '/includes/header.php';

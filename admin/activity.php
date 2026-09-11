@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
 
-$adminId = (int)$_SESSION['user']['id'];
+$adminId = (string)$_SESSION['user']['id'];
 $adminName = $_SESSION['user']['name'] ?? 'Administrador';
 
 $fromDate = isset($_GET['from']) && is_string($_GET['from']) ? $_GET['from'] : '';
@@ -16,27 +16,58 @@ if (!preg_match($datePattern, $toDate)) {
     $toDate = '';
 }
 
-$conditions = ['ci.admin_id = ?'];
-$parameters = [$adminId];
+// Obtener actividades
+$interQuery = $db->collection('crm_interactions')->where('admin_id', '=', $adminId);
+$interDocs = $interQuery->documents();
+$activities = [];
 
-if ($fromDate !== '') {
-    $conditions[] = 'ci.created_at >= ?';
-    $parameters[] = $fromDate . ' 00:00:00';
-}
-if ($toDate !== '') {
-    $conditions[] = 'ci.created_at <= ?';
-    $parameters[] = $toDate . ' 23:59:59';
+$usersCache = [];
+
+foreach ($interDocs as $doc) {
+    if ($doc->exists()) {
+        $ci = $doc->data();
+        $createdAt = $ci['created_at'] ?? '0';
+        
+        $match = true;
+        if ($fromDate !== '') {
+            $fromTs = $fromDate . ' 00:00:00';
+            if ($createdAt < $fromTs) {
+                $match = false;
+            }
+        }
+        if ($match && $toDate !== '') {
+            $toTs = $toDate . ' 23:59:59';
+            if ($createdAt > $toTs) {
+                $match = false;
+            }
+        }
+        
+        if ($match) {
+            $userId = $ci['user_id'] ?? '';
+            if (!isset($usersCache[$userId])) {
+                if ($userId) {
+                    $uDoc = $db->collection('users')->document($userId)->snapshot();
+                    if ($uDoc->exists()) {
+                        $usersCache[$userId] = $uDoc->data();
+                    } else {
+                        $usersCache[$userId] = null;
+                    }
+                } else {
+                    $usersCache[$userId] = null;
+                }
+            }
+            
+            $u = $usersCache[$userId];
+            $ci['client_name'] = $u['name'] ?? 'Desconocido';
+            $ci['client_email'] = $u['email'] ?? 'Desconocido';
+            $activities[] = $ci;
+        }
+    }
 }
 
-$activityStmt = $pdo->prepare("
-    SELECT ci.created_at, ci.type, ci.description, c.name AS client_name, c.email AS client_email
-    FROM crm_interactions ci
-    INNER JOIN users c ON c.id = ci.user_id
-    WHERE " . implode(' AND ', $conditions) . "
-    ORDER BY ci.created_at DESC
-");
-$activityStmt->execute($parameters);
-$activities = $activityStmt->fetchAll();
+usort($activities, function($a, $b) {
+    return strtotime($b['created_at'] ?? '0') - strtotime($a['created_at'] ?? '0');
+});
 
 require_once __DIR__ . '/includes/header.php';
 ?>

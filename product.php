@@ -2,20 +2,22 @@
 require_once 'includes/config.php';
 
 // Validar ID de producto recibido por GET
-if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
+if (!isset($_GET['id']) || trim($_GET['id']) === '') {
     die('ID de producto inválido.');
 }
 
-$id = (int)$_GET['id'];
+$id = trim($_GET['id']);
 
-// Consultar el producto por ID
-$stmt = $pdo->prepare("SELECT * FROM products WHERE id = ?");
-$stmt->execute([$id]);
-$product = $stmt->fetch();
+// Consultar el producto por ID en Firestore
+$productRef = $db->collection('products')->document($id);
+$doc = $productRef->snapshot();
 
-if (!$product) {
+if (!$doc->exists()) {
     die('Producto no encontrado.');
 }
+
+$product = $doc->data();
+$product['id'] = $doc->id();
 ?>
 
 <!DOCTYPE html>
@@ -109,9 +111,18 @@ if (!$product) {
         <h2>ARTÍCULOS SIMILARES</h2>
         <div class="products-grid">
             <?php
-            $stmt = $pdo->prepare("SELECT * FROM products WHERE id != ? ORDER BY RAND() LIMIT 4");
-            $stmt->execute([$id]);
-            $related = $stmt->fetchAll();
+            $productsRef = $db->collection('products');
+            $allDocs = $productsRef->documents();
+            $related = [];
+            foreach ($allDocs as $doc) {
+                if ($doc->exists() && $doc->id() !== $id) {
+                    $p = $doc->data();
+                    $p['id'] = $doc->id();
+                    $related[] = $p;
+                }
+            }
+            shuffle($related);
+            $related = array_slice($related, 0, 4);
 
             foreach ($related as $rel): ?>
                 <div class="product-card">

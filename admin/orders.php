@@ -1,14 +1,33 @@
 <?php
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
-// 1. Obtener todos los pedidos, uniéndolos con la tabla de usuarios para obtener el nombre del cliente
-$stmt = $pdo->query(
-    "SELECT o.id, o.total, o.status, o.created_at, u.name AS customer_name
-     FROM orders o
-     JOIN users u ON o.user_id = u.id
-     ORDER BY o.created_at DESC"
-);
-$orders = $stmt->fetchAll();
+$ordersDocs = $db->collection('orders')->documents();
+$orders = [];
+$usersCache = [];
+
+foreach ($ordersDocs as $doc) {
+    if ($doc->exists()) {
+        $o = $doc->data();
+        $o['id'] = $doc->id();
+        
+        $userId = $o['user_id'] ?? '';
+        if ($userId) {
+            if (!isset($usersCache[$userId])) {
+                $uDoc = $db->collection('users')->document($userId)->snapshot();
+                $usersCache[$userId] = $uDoc->exists() ? ($uDoc->data()['name'] ?? 'Desconocido') : 'Desconocido';
+            }
+            $o['customer_name'] = $usersCache[$userId];
+        } else {
+            $o['customer_name'] = 'Desconocido';
+        }
+        
+        $orders[] = $o;
+    }
+}
+
+usort($orders, function($a, $b) {
+    return strtotime($b['created_at'] ?? '0') - strtotime($a['created_at'] ?? '0');
+});
 
 // Incluir el header
 require_once __DIR__ . '/includes/header.php';

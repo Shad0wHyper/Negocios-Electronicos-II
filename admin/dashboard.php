@@ -3,54 +3,75 @@
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
 // 2. Consultas para las tarjetas de estadísticas
-$totalUsers = $pdo->query("SELECT COUNT(id) FROM users")->fetchColumn();
-$totalProducts = $pdo->query("SELECT COUNT(id) FROM products")->fetchColumn();
-$totalOrders = $pdo->query("SELECT COUNT(id) FROM orders")->fetchColumn();
-$totalRevenue = $pdo->query("SELECT SUM(total) FROM orders WHERE status = 'paid'")->fetchColumn() ?? 0;
+$totalUsers = 0;
+$usersQuery = $db->collection('users')->documents();
+foreach ($usersQuery as $doc) { if ($doc->exists()) $totalUsers++; }
+
+$totalProducts = 0;
+$productsQuery = $db->collection('products')->documents();
+foreach ($productsQuery as $doc) { if ($doc->exists()) $totalProducts++; }
+
+$totalOrders = 0;
+$totalRevenue = 0;
+$allOrders = [];
+$ordersQuery = $db->collection('orders')->documents();
+foreach ($ordersQuery as $doc) {
+    if ($doc->exists()) {
+        $totalOrders++;
+        $o = $doc->data();
+        $o['id'] = $doc->id();
+        if (($o['status'] ?? '') === 'paid') {
+            $totalRevenue += (float)($o['total'] ?? 0);
+        }
+        $allOrders[] = $o;
+    }
+}
+
+// Sort orders by date DESC
+usort($allOrders, function($a, $b) {
+    return strtotime($b['created_at'] ?? '0') - strtotime($a['created_at'] ?? '0');
+});
 
 // 3. Consulta para los pedidos recientes
-$recentOrders = $pdo->query(
-    "SELECT o.id, u.name as user_name, o.total, o.status, o.created_at
-     FROM orders o JOIN users u ON o.user_id = u.id
-     ORDER BY o.created_at DESC LIMIT 5"
-)->fetchAll();
+$recentOrders = array_slice($allOrders, 0, 5);
+$usersCache = [];
+foreach ($recentOrders as &$ro) {
+    $uid = $ro['user_id'] ?? '';
+    if ($uid) {
+        if (!isset($usersCache[$uid])) {
+            $uDoc = $db->collection('users')->document($uid)->snapshot();
+            $usersCache[$uid] = $uDoc->exists() ? ($uDoc->data()['name'] ?? 'Desconocido') : 'Desconocido';
+        }
+        $ro['user_name'] = $usersCache[$uid];
+    } else {
+        $ro['user_name'] = 'Desconocido';
+    }
+}
+unset($ro);
 
 // 4. --- NUEVO: Obtener datos para la gráfica de los últimos 7 días ---
-$chartDataQuery = "
-    SELECT
-        DATE(created_at) as sale_date,
-        SUM(total) as daily_revenue,
-        COUNT(id) as daily_orders
-    FROM orders
-    WHERE created_at >= CURDATE() - INTERVAL 6 DAY AND status = 'paid'
-    GROUP BY DATE(created_at)
-    ORDER BY sale_date ASC
-";
-$chartResult = $pdo->query($chartDataQuery)->fetchAll();
-
-// Procesar datos para que Chart.js los entienda
-$chartLabels = [];
-$chartRevenueData = [];
-$chartOrdersData = [];
-
-// Crear un array base con los últimos 7 días para asegurar que todos los días aparezcan, incluso si no hubo ventas
 $dateRange = [];
 for ($i = 6; $i >= 0; $i--) {
     $date = date('Y-m-d', strtotime("-$i days"));
     $dateRange[$date] = ['revenue' => 0, 'orders' => 0];
 }
 
-// Llenar el array con los datos reales de la base de datos
-foreach ($chartResult as $row) {
-    if (isset($dateRange[$row['sale_date']])) {
-        $dateRange[$row['sale_date']]['revenue'] = $row['daily_revenue'];
-        $dateRange[$row['sale_date']]['orders'] = $row['daily_orders'];
+$sevenDaysAgo = date('Y-m-d 00:00:00', strtotime("-6 days"));
+foreach ($allOrders as $o) {
+    if (($o['status'] ?? '') === 'paid' && ($o['created_at'] ?? '') >= $sevenDaysAgo) {
+        $saleDate = substr($o['created_at'], 0, 10);
+        if (isset($dateRange[$saleDate])) {
+            $dateRange[$saleDate]['revenue'] += (float)($o['total'] ?? 0);
+            $dateRange[$saleDate]['orders']++;
+        }
     }
 }
 
-// Separar en los arrays finales que usará el gráfico
+$chartLabels = [];
+$chartRevenueData = [];
+$chartOrdersData = [];
 foreach ($dateRange as $date => $data) {
-    $chartLabels[] = date('d M', strtotime($date)); // Formato '17 Jul'
+    $chartLabels[] = date('d M', strtotime($date));
     $chartRevenueData[] = $data['revenue'];
     $chartOrdersData[] = $data['orders'];
 }
