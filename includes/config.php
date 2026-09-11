@@ -16,6 +16,7 @@ try {
     $db = $firestore->database();
     $storage = $factory->createStorage();
     $bucket = $storage->getBucket();
+    $auth = $factory->createAuth();
 } catch (Exception $e) {
     die("Error de conexión Firebase: " . $e->getMessage());
 }
