@@ -5,26 +5,34 @@ require_once 'includes/auth.php';
 
 // Procesar POST para agregar una nueva dirección
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add') {
-    $stmt = $pdo->prepare("INSERT INTO addresses (user_id, first_name, last_name, country, address, city, state, zip, phone, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([
-        $_SESSION['user']['id'],
-        $_POST['first_name'],
-        $_POST['last_name'],
-        $_POST['country'],
-        $_POST['address'],
-        $_POST['city'],
-        $_POST['state'],
-        $_POST['zip'],
-        $_POST['phone'],
-        $_POST['notes']
+    $addressesRef = $db->collection('addresses');
+    $addressesRef->add([
+        'user_id' => $_SESSION['user']['id'],
+        'first_name' => $_POST['first_name'],
+        'last_name' => $_POST['last_name'],
+        'country' => $_POST['country'],
+        'address' => $_POST['address'],
+        'city' => $_POST['city'],
+        'state' => $_POST['state'],
+        'zip' => $_POST['zip'],
+        'phone' => $_POST['phone'],
+        'notes' => $_POST['notes']
     ]);
     header('Location: address.php'); exit;
 }
 
 // Traer direcciones existentes
-$stmt = $pdo->prepare("SELECT * FROM addresses WHERE user_id = ?");
-$stmt->execute([$_SESSION['user']['id']]);
-$addresses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$addressesRef = $db->collection('addresses');
+$query = $addressesRef->where('user_id', '=', $_SESSION['user']['id']);
+$documents = $query->documents();
+$addresses = [];
+foreach ($documents as $doc) {
+    if ($doc->exists()) {
+        $addr = $doc->data();
+        $addr['id'] = $doc->id();
+        $addresses[] = $addr;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">

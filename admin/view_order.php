@@ -2,11 +2,11 @@
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
 // 1. Validar y obtener el ID del pedido de la URL
-if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
+if (!isset($_GET['id']) || empty($_GET['id'])) {
     header('Location: orders.php');
     exit;
 }
-$orderId = (int)$_GET['id'];
+$orderId = trim($_GET['id']);
 
 // --- NUEVO: Procesar la actualización de estado si se envía el formulario ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
@@ -14,8 +14,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     $allowedStatuses = ['pending', 'paid', 'shipped', 'cancelled'];
 
     if (in_array($newStatus, $allowedStatuses)) {
-        $stmt = $pdo->prepare("UPDATE orders SET status = ? WHERE id = ?");
-        $stmt->execute([$newStatus, $orderId]);
+        try {
+            $db->collection('orders')->document($orderId)->set(['status' => $newStatus], ['merge' => true]);
+        } catch (Exception $e) {}
 
         // Redirigir a la misma página para ver el cambio y evitar reenvío del formulario
         header('Location: view_order.php?id=' . $orderId);
@@ -26,34 +27,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
 
 
 // 2. Obtener los datos principales del pedido y del usuario
-$stmt = $pdo->prepare(
-    "SELECT o.*, u.name AS user_name, u.email AS user_email, u.id AS user_id
-     FROM orders o
-     JOIN users u ON o.user_id = u.id
-     WHERE o.id = ?"
-);
-$stmt->execute([$orderId]);
-$order = $stmt->fetch();
-
-if (!$order) {
+$orderDoc = $db->collection('orders')->document($orderId)->snapshot();
+if (!$orderDoc->exists()) {
     header('Location: orders.php');
     exit;
 }
+$order = $orderDoc->data();
+$order['id'] = $orderDoc->id();
+
+$userDoc = $db->collection('users')->document($order['user_id'] ?? '')->snapshot();
+if ($userDoc->exists()) {
+    $uData = $userDoc->data();
+    $order['user_name'] = $uData['name'] ?? 'Desconocido';
+    $order['user_email'] = $uData['email'] ?? 'Desconocido';
+} else {
+    $order['user_name'] = 'Desconocido';
+    $order['user_email'] = 'Desconocido';
+}
 
 // 3. Obtener los artículos específicos de este pedido
-$itemsStmt = $pdo->prepare(
-    "SELECT oi.quantity, oi.unit_price, p.name AS product_name, p.image AS product_image
-     FROM order_items oi
-     JOIN products p ON oi.product_id = p.id
-     WHERE oi.order_id = ?"
-);
-$itemsStmt->execute([$orderId]);
-$orderItems = $itemsStmt->fetchAll();
+$orderItems = [];
+if (isset($order['items']) && is_array($order['items'])) {
+    foreach ($order['items'] as $item) {
+        $pId = $item['product_id'];
+        $pDoc = $db->collection('products')->document($pId)->snapshot();
+        if ($pDoc->exists()) {
+            $pData = $pDoc->data();
+            $item['product_name'] = $pData['name'] ?? 'Producto Desconocido';
+            $item['product_image'] = $pData['image'] ?? '';
+        } else {
+            $item['product_name'] = 'Producto Eliminado';
+            $item['product_image'] = '';
+        }
+        $orderItems[] = $item;
+    }
+}
 
 // 4. Obtener la dirección más reciente del usuario
-$addressStmt = $pdo->prepare("SELECT * FROM addresses WHERE user_id = ? ORDER BY id DESC LIMIT 1");
-$addressStmt->execute([$order['user_id']]);
-$address = $addressStmt->fetch();
+$addressesQuery = $db->collection('addresses')->where('user_id', '=', $order['user_id'] ?? '')->documents();
+$addresses = [];
+foreach ($addressesQuery as $doc) {
+    if ($doc->exists()) {
+        $addr = $doc->data();
+        $addr['id'] = $doc->id();
+        $addresses[] = $addr;
+    }
+}
+usort($addresses, function($a, $b) {
+    return strtotime($b['created_at'] ?? '0') - strtotime($a['created_at'] ?? '0');
+});
+$address = !empty($addresses) ? $addresses[0] : null;
 
 // 5. Calcular subtotales
 $itemsSubtotal = 0;
@@ -140,7 +163,7 @@ require_once __DIR__ . '/includes/header.php';
                             <?php foreach ($orderItems as $item): ?>
                                 <tr class="bg-white border-b hover:bg-gray-50">
                                     <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap flex items-center">
-                                        <img src="../<?php echo htmlspecialchars($item['product_image']); ?>" class="h-12 w-12 object-cover rounded mr-4">
+                                        <img src="<?php echo htmlspecialchars($item['product_image']); ?>" class="h-12 w-12 object-cover rounded mr-4">
                                         <?php echo htmlspecialchars($item['product_name']); ?>
                                     </th>
                                     <td class="px-6 py-4">$<?php echo number_format($item['unit_price'], 2); ?></td>

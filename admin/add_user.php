@@ -21,17 +21,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Rol no válido.';
     } else {
         // Comprobar si el email ya existe
-        $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ?');
-        $stmt->execute([$email]);
-        if ($stmt->fetch()) {
+        $usersRef = $db->collection('users');
+        $query = $usersRef->where('email', '=', $email);
+        $documents = $query->documents();
+        
+        $emailExists = false;
+        foreach ($documents as $doc) {
+            if ($doc->exists()) {
+                $emailExists = true;
+                break;
+            }
+        }
+
+        if ($emailExists) {
             $error = 'Este correo ya está registrado.';
         } else {
             // Insertar nuevo usuario con su rol
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare(
-                'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)'
-            );
-            $stmt->execute([$name, $email, $hash, $role]);
+            $usersRef->add([
+                'name' => $name,
+                'email' => $email,
+                'password' => $hash,
+                'role' => $role,
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
 
             // Redirigir a la lista de usuarios
             header('Location: users.php');

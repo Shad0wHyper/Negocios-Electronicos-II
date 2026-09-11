@@ -6,16 +6,25 @@ require_once 'includes/header.php';
 // Recoger término de búsqueda
 $q = trim($_GET['q'] ?? '');
 
-if ($q !== '') {
-    // Consulta parametrizada: filtrar por name
-    $stmt = $pdo->prepare('SELECT * FROM products WHERE name LIKE :term');
-    $stmt->execute([':term' => "%{$q}%"]);
-} else {
-    // Sin búsqueda: todos los productos
-    $stmt = $pdo->query('SELECT * FROM products');
-}
+$productsRef = $db->collection('products');
+$documents = $productsRef->documents();
 
-$products = $stmt->fetchAll();
+$products = [];
+foreach ($documents as $doc) {
+    if ($doc->exists()) {
+        $p = $doc->data();
+        $p['id'] = $doc->id();
+        
+        if ($q !== '') {
+            // Búsqueda case-insensitive por nombre
+            if (stripos($p['name'], $q) !== false) {
+                $products[] = $p;
+            }
+        } else {
+            $products[] = $p;
+        }
+    }
+}
 ?>
 
 <main class="shop-page">

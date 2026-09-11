@@ -10,7 +10,7 @@
         <div class="footer-top">
             <div class="footer-brand-section">
                 <a href="index.php" class="footer-logo">
-                    <img src="Imagenes/Logo_Final.png" alt="Xanarchy Logo" />
+                    <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FLogo_Final.png?alt=media" alt="Xanarchy Logo" />
                     <span>XANARCHY</span>
                 </a>
                 <p class="footer-description">

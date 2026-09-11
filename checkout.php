@@ -4,17 +4,20 @@ require_once 'includes/config.php';
 require_once 'includes/auth.php';  // Asegura que el usuario esté logueado
 
 // 1) Verificar address_id
-if (!isset($_GET['address_id']) || !is_numeric($_GET['address_id'])) {
+if (!isset($_GET['address_id']) || empty($_GET['address_id'])) {
     header('Location: address.php');
     exit;
 }
-$address_id = (int)$_GET['address_id'];
+$address_id = trim($_GET['address_id']);
 
 // 2) Cargar la dirección
-$stmt = $pdo->prepare("SELECT * FROM addresses WHERE id = ? AND user_id = ?");
-$stmt->execute([$address_id, $_SESSION['user']['id']]);
-$address = $stmt->fetch();
-if (!$address) {
+$addressDoc = $db->collection('addresses')->document($address_id)->snapshot();
+if (!$addressDoc->exists()) {
+    header('Location: address.php');
+    exit;
+}
+$address = $addressDoc->data();
+if ($address['user_id'] !== $_SESSION['user']['id']) {
     header('Location: address.php');
     exit;
 }
@@ -28,10 +31,16 @@ if (empty($product_ids)) {
 }
 
 // 4) Cargar productos
-$placeholders = implode(',', array_fill(0, count($product_ids), '?'));
-$stmt = $pdo->prepare("SELECT * FROM products WHERE id IN ($placeholders)");
-$stmt->execute($product_ids);
-$products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$products = [];
+$productsRef = $db->collection('products');
+foreach ($product_ids as $pid) {
+    $doc = $productsRef->document($pid)->snapshot();
+    if ($doc->exists()) {
+        $p = $doc->data();
+        $p['id'] = $doc->id();
+        $products[] = $p;
+    }
+}
 
 // 5) Calcular totales
 $subtotal = 0;

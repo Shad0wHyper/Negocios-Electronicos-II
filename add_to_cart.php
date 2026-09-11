@@ -2,10 +2,10 @@
 require_once 'includes/config.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $product_id = isset($_POST['product_id']) ? (int) $_POST['product_id'] : 0;
+    $product_id = isset($_POST['product_id']) ? trim($_POST['product_id']) : '';
     $quantity = isset($_POST['quantity']) ? (int) $_POST['quantity'] : 1;
 
-    if ($product_id > 0) {
+    if (!empty($product_id)) {
         // Asegurarse de que existe el carrito
         if (!isset($_SESSION['cart'])) {
             $_SESSION['cart'] = [];

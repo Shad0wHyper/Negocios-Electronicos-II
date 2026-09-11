@@ -2,22 +2,22 @@
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
 // Validar y obtener el ID del usuario de la URL
-if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
+if (!isset($_GET['id']) || empty($_GET['id'])) {
     header('Location: users.php');
     exit;
 }
-$userId = (int)$_GET['id'];
+$userId = trim($_GET['id']);
 $returnToCrm = isset($_GET['return']) && $_GET['return'] === 'crm';
 
 // Obtener los datos actuales del usuario
-$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
-$stmt->execute([$userId]);
-$user = $stmt->fetch();
+$userRef = $db->collection('users')->document($userId);
+$doc = $userRef->snapshot();
 
-if (!$user) {
+if (!$doc->exists()) {
     header('Location: ' . ($returnToCrm ? 'crm_client.php?id=' . $userId : 'users.php'));
     exit;
 }
+$user = $doc->data();
 
 $error = '';
 
@@ -33,26 +33,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Por favor, completa los campos correctamente.';
     } else {
         // Comprobar si el nuevo email ya está en uso por OTRO usuario
-        $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ? AND id != ?');
-        $stmt->execute([$email, $userId]);
-        if ($stmt->fetch()) {
+        $usersRef = $db->collection('users');
+        $query = $usersRef->where('email', '=', $email);
+        $documents = $query->documents();
+        
+        $emailExists = false;
+        foreach ($documents as $docResult) {
+            if ($docResult->exists() && $docResult->id() !== $userId) {
+                $emailExists = true;
+                break;
+            }
+        }
+
+        if ($emailExists) {
             $error = 'Este correo ya está registrado por otro usuario.';
         } else {
             // Actualización condicional de la contraseña
+            $updateData = [
+                'name' => $name,
+                'email' => $email,
+                'role' => $role
+            ];
+
             if (!empty($password)) {
-                // Si se proporcionó una nueva contraseña, la actualizamos
-                $hash = password_hash($password, PASSWORD_DEFAULT);
-                $updateStmt = $pdo->prepare(
-                    "UPDATE users SET name = ?, email = ?, role = ?, password = ? WHERE id = ?"
-                );
-                $updateStmt->execute([$name, $email, $role, $hash, $userId]);
-            } else {
-                // Si no se proporcionó contraseña, la dejamos como está
-                $updateStmt = $pdo->prepare(
-                    "UPDATE users SET name = ?, email = ?, role = ? WHERE id = ?"
-                );
-                $updateStmt->execute([$name, $email, $role, $userId]);
+                $updateData['password'] = password_hash($password, PASSWORD_DEFAULT);
             }
+            
+            $userRef->set($updateData, ['merge' => true]);
+
             header('Location: users.php');
             exit;
         }

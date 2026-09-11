@@ -2,30 +2,63 @@
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
 
-$totalCustomers = (int)$pdo->query("
-    SELECT COUNT(id)
-    FROM users
-    WHERE role = 'customer'
-")->fetchColumn();
+$totalCustomers = 0;
+$activeCustomers = 0;
 
-$activeCustomers = (int)$pdo->query("
-    SELECT COUNT(id)
-    FROM users
-    WHERE role = 'customer' AND crm_stage IN ('Activo', 'Frecuente')
-")->fetchColumn();
+$stageOrder = ['Prospecto', 'Activo', 'Frecuente', 'Inactivo'];
+$stageData = [];
+foreach ($stageOrder as $stage) {
+    $stageData[$stage] = 0;
+}
 
-$monthInteractions = (int)$pdo->query("
-    SELECT COUNT(id)
-    FROM crm_interactions
-    WHERE created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
-")->fetchColumn();
+$allCustomerIds = [];
+$usersQuery = $db->collection('users')->where('role', '=', 'customer')->documents();
+foreach ($usersQuery as $doc) {
+    if ($doc->exists()) {
+        $u = $doc->data();
+        $id = $doc->id();
+        $allCustomerIds[] = $id;
+        $totalCustomers++;
+        
+        $stage = $u['crm_stage'] ?? 'Prospecto';
+        if (in_array($stage, ['Activo', 'Frecuente'])) {
+            $activeCustomers++;
+        }
+        
+        if (array_key_exists($stage, $stageData)) {
+            $stageData[$stage]++;
+        }
+    }
+}
 
-$customersWithoutInteraction = (int)$pdo->query("
-    SELECT COUNT(u.id)
-    FROM users u
-    LEFT JOIN crm_interactions ci ON ci.user_id = u.id
-    WHERE u.role = 'customer' AND ci.id IS NULL
-")->fetchColumn();
+$monthStart = date('Y-m-01 00:00:00');
+$monthInteractions = 0;
+$customersWithInteractions = [];
+
+$interactionCounts = [];
+
+$interQuery = $db->collection('crm_interactions')->documents();
+foreach ($interQuery as $doc) {
+    if ($doc->exists()) {
+        $inter = $doc->data();
+        if (isset($inter['user_id'])) {
+            $customersWithInteractions[] = $inter['user_id'];
+        }
+        
+        $createdAt = $inter['created_at'] ?? '0';
+        if ($createdAt >= $monthStart) {
+            $monthInteractions++;
+            $type = $inter['type'] ?? 'Nota';
+            if (!isset($interactionCounts[$type])) {
+                $interactionCounts[$type] = 0;
+            }
+            $interactionCounts[$type]++;
+        }
+    }
+}
+
+$customersWithInteractions = array_unique($customersWithInteractions);
+$customersWithoutInteraction = count(array_diff($allCustomerIds, $customersWithInteractions));
 
 $activePercentage = $totalCustomers > 0
     ? round(($activeCustomers / $totalCustomers) * 100, 1)
@@ -34,42 +67,11 @@ $withoutInteractionPercentage = $totalCustomers > 0
     ? round(($customersWithoutInteraction / $totalCustomers) * 100, 1)
     : 0;
 
-$interactionTypesStmt = $pdo->query("
-    SELECT type, COUNT(id) AS total
-    FROM crm_interactions
-    WHERE created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
-    GROUP BY type
-    ORDER BY total DESC
-");
-$interactionTypes = $interactionTypesStmt->fetchAll();
+arsort($interactionCounts); // Sort descending by count
+$interactionLabels = array_keys($interactionCounts);
+$interactionData = array_values($interactionCounts);
 
-$stageStmt = $pdo->query("
-    SELECT crm_stage, COUNT(id) AS total
-    FROM users
-    WHERE role = 'customer'
-    GROUP BY crm_stage
-");
-$stageRows = $stageStmt->fetchAll();
-
-$stageOrder = ['Prospecto', 'Activo', 'Frecuente', 'Inactivo'];
-$stageLabels = [];
-$stageData = [];
-foreach ($stageOrder as $stage) {
-    $stageLabels[] = $stage;
-    $stageData[$stage] = 0;
-}
-foreach ($stageRows as $row) {
-    if (array_key_exists($row['crm_stage'], $stageData)) {
-        $stageData[$row['crm_stage']] = (int)$row['total'];
-    }
-}
-
-$interactionLabels = [];
-$interactionData = [];
-foreach ($interactionTypes as $row) {
-    $interactionLabels[] = $row['type'];
-    $interactionData[] = (int)$row['total'];
-}
+$stageLabels = array_keys($stageData);
 
 require_once __DIR__ . '/includes/header.php';
 ?>

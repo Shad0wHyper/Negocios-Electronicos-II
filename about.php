@@ -17,7 +17,7 @@ require_once 'includes/header.php';
     <!-- HERO MANIFESTO -->
     <section class="manifesto-hero">
         <div class="manifesto-hero-bg">
-            <img src="Imagenes/manifesto_hero.jpg" alt="El Manifiesto Xanarchy" />
+            <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2Fmanifesto_hero.jpg?alt=media" alt="El Manifiesto Xanarchy" />
             <div class="hero-overlay"></div>
         </div>
         <div class="manifesto-hero-content">
@@ -35,7 +35,7 @@ require_once 'includes/header.php';
             </p>
         </div>
         <div class="value-block image-block">
-            <img src="Imagenes/manifesto_atelier.jpg" alt="Precisión en la confección" />
+            <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2Fmanifesto_atelier.jpg?alt=media" alt="Precisión en la confección" />
         </div>
 
         <div class="value-block blue-block">
@@ -70,7 +70,7 @@ require_once 'includes/header.php';
         
         <div class="architect-card">
             <div class="architect-image">
-                <img src="Imagenes/Alejandro.jpg" alt="Luis Alejandro Garduño Valdivia" />
+                <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FAlejandro.jpg?alt=media" alt="Luis Alejandro Garduño Valdivia" />
             </div>
             <div class="architect-info">
                 <h3>LUIS ALEJANDRO<br>GARDUÑO VALDIVIA</h3>

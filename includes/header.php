@@ -18,7 +18,7 @@ require_once __DIR__ . '/config.php';
         <div class="header-inner">
             <div class="logo">
                 <a href="index.php">
-                    <img src="Imagenes/Logo_Final.png" alt="Xanarchy Logo" />
+                    <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FLogo_Final.png?alt=media" alt="Xanarchy Logo" />
                 </a>
             </div>
             <nav class="main-nav">

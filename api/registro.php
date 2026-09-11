@@ -40,9 +40,19 @@ if ($method === 'POST') {
 
     try {
         // Verificar si el correo ya existe
-        $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ?');
-        $stmt->execute([$email]);
-        if ($stmt->fetch()) {
+        $usersRef = $db->collection('users');
+        $query = $usersRef->where('email', '=', $email)->limit(1);
+        $documents = $query->documents();
+        
+        $emailExists = false;
+        foreach ($documents as $document) {
+            if ($document->exists()) {
+                $emailExists = true;
+                break;
+            }
+        }
+
+        if ($emailExists) {
             http_response_code(409); // 409 Conflict
             echo json_encode(["status" => "error", "message" => "Este correo ya está registrado."]);
             exit;
@@ -52,10 +62,17 @@ if ($method === 'POST') {
         $hash = password_hash($password, PASSWORD_DEFAULT);
 
         // Insertar el usuario en la BD
-        $stmt = $pdo->prepare('INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)');
-        $stmt->execute([$name, $email, $hash, 'customer']);
+        $newUserRef = $usersRef->add([
+            'name' => $name,
+            'email' => $email,
+            'password' => $hash,
+            'role' => 'customer',
+            'crm_stage' => 'Prospecto',
+            'crm_stage_manual' => false,
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
 
-        $newUserId = $pdo->lastInsertId();
+        $newUserId = $newUserRef->id();
 
         http_response_code(201); // 201 Created
         echo json_encode([
@@ -69,9 +86,9 @@ if ($method === 'POST') {
             ]
         ]);
 
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode(["status" => "error", "message" => "Error de base de datos."]);
+        echo json_encode(["status" => "error", "message" => "Error de base de datos.", "details" => $e->getMessage()]);
     }
 
 } else {

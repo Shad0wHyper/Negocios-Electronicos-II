@@ -5,9 +5,23 @@ require_once 'includes/auth.php';
 require_once 'includes/header.php';
 
 // Obtener dirección principal del usuario
-$stmt = $pdo->prepare("SELECT * FROM addresses WHERE user_id = ? ORDER BY created_at DESC LIMIT 1");
-$stmt->execute([$_SESSION['user']['id']]);
-$address = $stmt->fetch(PDO::FETCH_ASSOC);
+$addressesRef = $db->collection('addresses');
+$query = $addressesRef->where('user_id', '=', (string)$_SESSION['user']['id']);
+$documents = $query->documents();
+$addresses = [];
+foreach ($documents as $doc) {
+    if ($doc->exists()) {
+        $a = $doc->data();
+        $a['id'] = $doc->id();
+        $addresses[] = $a;
+    }
+}
+usort($addresses, function($a, $b) {
+    $dateA = $a['created_at'] ?? '2000-01-01 00:00:00';
+    $dateB = $b['created_at'] ?? '2000-01-01 00:00:00';
+    return strtotime($dateB) - strtotime($dateA);
+});
+$address = !empty($addresses) ? $addresses[0] : null;
 ?>
 <main>
     <style>
@@ -48,7 +62,7 @@ $address = $stmt->fetch(PDO::FETCH_ASSOC);
         <div class="profile-sections">
             <div class="profile-item">
                 <img
-                        src="Imagenes/Iconos/marcador-de-posicion 1.png"
+                        src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2Fmarcador-de-posicion%201.png?alt=media"
                         alt="Ubicacion" class="icon"
                 />
                 <div>
@@ -68,7 +82,7 @@ $address = $stmt->fetch(PDO::FETCH_ASSOC);
             </div>
 
             <div class="profile-item">
-                <img src="Imagenes/Iconos/Shopping.png" alt="Pedidos" class="icon" />
+                <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FShopping.png?alt=media" alt="Pedidos" class="icon" />
                 <div>
                     <h3>Pedidos</h3>
                     <p><a href="orders.php" class="link-btn">Ver mis pedidos</a></p>
@@ -76,7 +90,7 @@ $address = $stmt->fetch(PDO::FETCH_ASSOC);
             </div>
 
             <div class="profile-item">
-                <img src="Imagenes/Iconos/Historial_compras.png" alt="Historial de compras" class="icon" />
+                <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FHistorial_compras.png?alt=media" alt="Historial de compras" class="icon" />
                 <div>
                     <h3>Historial de Compras</h3>
                     <p><a href="orders.php" class="link-btn">Ver historial</a></p>

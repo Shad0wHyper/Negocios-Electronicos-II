@@ -18,10 +18,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Email no válido.';
     } else {
-        // Buscar usuario en la BD
-        $stmt = $pdo->prepare('SELECT id, name, email, password, role FROM users WHERE email = ?');
-        $stmt->execute([$email]);
-        $user = $stmt->fetch();
+        // Buscar usuario en la BD Firestore
+        $usersRef = $db->collection('users');
+        $query = $usersRef->where('email', '=', $email)->limit(1);
+        $documents = $query->documents();
+        
+        $user = null;
+        foreach ($documents as $document) {
+            if ($document->exists()) {
+                $user = $document->data();
+                $user['id'] = $document->id(); // Añadir ID para la sesión
+                break;
+            }
+        }
 
         if ($user && password_verify($pass, $user['password'])) {
             unset($user['password']);
@@ -57,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="login-form-container">
             <a href="index.php" class="login-logo-link" title="Volver a la tienda">
                 <span class="back-arrow">←</span>
-                <img src="Imagenes/Logo_Final.png" alt="Xanarchy Logo" class="login-logo">
+                <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FLogo_Final.png?alt=media" alt="Xanarchy Logo" class="login-logo">
             </a>
 
             <div class="form-wrapper">

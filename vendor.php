@@ -14,10 +14,10 @@
 
   <section class="seller-interface">
     <div class="product-preview">
-      <img src="Imagenes/Colecciones.png" alt="Producto principal" />
+      <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FColecciones.png?alt=media" alt="Producto principal" />
       <div class="product-thumbnails">
-        <img src="Imagenes/Colecciones.png" alt="Miniatura 1" />
-        <img src="Imagenes/Colecciones.png" alt="Miniatura 2" />
+        <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FColecciones.png?alt=media" alt="Miniatura 1" />
+        <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FColecciones.png?alt=media" alt="Miniatura 2" />
         <div class="add-thumbnail">+</div>
       </div>
     </div>
