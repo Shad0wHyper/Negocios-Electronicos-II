@@ -1,4 +1,4 @@
-/vendor/
+
 /.idea/
 firebase_credentials.json
 *.log
