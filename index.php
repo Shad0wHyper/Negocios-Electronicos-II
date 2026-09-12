@@ -8,6 +8,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Xanarchy - La Nueva Era del Streetwear</title>
+  <link rel="preload" as="image" href="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2Fhero_v2.jpg?alt=media" fetchpriority="high">
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body class="xanarchy-home">
@@ -15,7 +16,7 @@
 <!-- HERO FULLSCREEN -->
 <section class="hero-fullscreen">
     <div class="hero-background">
-        <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2Fhero_v2.jpg?alt=media" alt="Xanarchy Hero" />
+        <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2Fhero_v2.jpg?alt=media" alt="Xanarchy Hero" fetchpriority="high" decoding="sync" />
         <div class="hero-overlay"></div>
     </div>
     <div class="hero-content">
@@ -29,19 +30,19 @@
 <section class="lookbook-section">
     <div class="lookbook-grid">
         <a href="shop.php?category=Caballero" class="lookbook-item">
-            <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FCaballero_v2.jpg?alt=media" alt="Caballero" />
+            <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FCaballero_v2.jpg?alt=media" alt="Caballero" loading="lazy" decoding="async" />
             <div class="lookbook-label">CABALLERO</div>
         </a>
         <a href="shop.php?category=Dama" class="lookbook-item">
-            <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FDama_v2.jpg?alt=media" alt="Dama" />
+            <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FDama_v2.jpg?alt=media" alt="Dama" loading="lazy" decoding="async" />
             <div class="lookbook-label">DAMA</div>
         </a>
         <a href="shop.php?category=Ediciones Limitadas" class="lookbook-item">
-            <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FEdiciones_Limitadas_v2.jpg?alt=media" alt="Ediciones Limitadas" />
+            <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FEdiciones_Limitadas_v2.jpg?alt=media" alt="Ediciones Limitadas" loading="lazy" decoding="async" />
             <div class="lookbook-label">LIMITED EDITION</div>
         </a>
         <a href="shop.php?category=Colecciones" class="lookbook-item">
-            <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FColecciones_v2.jpg?alt=media" alt="Colecciones" />
+            <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FColecciones_v2.jpg?alt=media" alt="Colecciones" loading="lazy" decoding="async" />
             <div class="lookbook-label">COLECCIONES</div>
         </a>
     </div>
@@ -97,7 +98,7 @@
 <!-- LUXURY SPLIT PROMO -->
 <section class="luxury-split-promo">
     <div class="split-image">
-        <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FDescuento1_v2.jpg?alt=media" alt="Gothic Collection" />
+        <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FDescuento1_v2.jpg?alt=media" alt="Gothic Collection" loading="lazy" decoding="async" />
     </div>
     <div class="split-content">
         <span class="promo-badge">ARCHIVOS EXCLUSIVOS</span>
@@ -115,7 +116,7 @@
         <a href="about.php" class="link-luxury">CONOCE EL MANIFIESTO</a>
     </div>
     <div class="editorial-image">
-        <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2Fquienes_somos_v2.jpg?alt=media" alt="Identidad Xanarchy" />
+        <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2Fquienes_somos_v2.jpg?alt=media" alt="Identidad Xanarchy" loading="lazy" decoding="async" />
     </div>
 </section>
 
