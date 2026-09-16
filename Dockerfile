@@ -1,4 +1,4 @@
-﻿FROM php:8.2-apache
+FROM php:8.2-apache
 
 # Habilitar mod_rewrite de Apache
 RUN a2enmod rewrite
@@ -12,7 +12,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Instalar extensión gRPC (requerida por Firebase Admin SDK para Firestore)
-RUN pecl install grpc && docker-php-ext-enable grpc
+COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
+RUN install-php-extensions grpc
 
 # Instalar extensión ZIP
 RUN docker-php-ext-install zip
@@ -33,3 +34,4 @@ RUN chown -R www-data:www-data /var/www/html
 # Exponer el puerto 8080 (Cloud Run lo requiere)
 RUN sed -i 's/80/8080/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
 EXPOSE 8080
+
