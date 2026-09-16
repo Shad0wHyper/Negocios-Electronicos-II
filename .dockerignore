@@ -1,0 +1,8 @@
+﻿.git
+.gitignore
+firebase_credentials.json
+.vscode
+.env
+Dockerfile
+.dockerignore
+vendor/
