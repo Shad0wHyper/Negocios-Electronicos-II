@@ -13,7 +13,7 @@ require_once __DIR__ . '/config.php';
     <link rel="stylesheet" href="styles.css">
 </head>
 
-<body class="site-body <?= isset($bodyClass) ? htmlspecialchars($bodyClass) : ' ?>">
+<body class="site-body <?= isset($bodyClass) ? htmlspecialchars($bodyClass) : '' ?>">
     <header class="xanarchy-header">
         <div class="header-inner">
             <div class="logo">
