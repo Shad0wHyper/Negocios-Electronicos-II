@@ -1,6 +1,7 @@
 <?php
 // includes/config.php
 if (session_status() === PHP_SESSION_NONE) {
+    session_name('__session');
     session_start();
 }
 
@@ -34,3 +35,4 @@ try {
 } catch (Exception $e) {
     die("Error de conexión Firebase: " . $e->getMessage());
 }
+
