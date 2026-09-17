@@ -23,7 +23,7 @@ COPY . /var/www/html/
 
 # Instalar dependencias de PHP vía Composer
 WORKDIR /var/www/html/
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader --ignore-platform-req=ext-grpc
 
 # Ajustar permisos para Apache
 RUN chown -R www-data:www-data /var/www/html
@@ -31,5 +31,6 @@ RUN chown -R www-data:www-data /var/www/html
 # Exponer el puerto 8080 (Cloud Run lo requiere)
 RUN sed -i 's/80/8080/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
 EXPOSE 8080
+
 
 
