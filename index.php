@@ -1,9 +1,8 @@
-<?php 
+<?php
 $bodyClass = "xanarchy-home";
-require_once 'includes/config.php'; 
-require_once 'includes/header.php'; 
+require_once 'includes/config.php';
+require_once 'includes/header.php';
 ?>
-
 <!-- HERO FULLSCREEN -->
 <section class="hero-fullscreen">
     <div class="hero-background">
@@ -11,105 +10,162 @@ require_once 'includes/header.php';
         <div class="hero-overlay"></div>
     </div>
     <div class="hero-content">
-        <h1 class="hero-title">PURA GEOMETRÍA.<br>PURO LUJO.</h1>
-        <p class="hero-subtitle">LA NUEVA ERA DEL STREETWEAR CONTEMPORÁNEO.</p>
-        <a href="shop.php" class="btn btn-primary btn-lg">EXPLORAR COLECCIÓN</a>
+        <h2>PURA GEOMETRÍA.<br>PURO LUJO.</h2>
+        <p>La nueva era del streetwear contemporáneo.</p>
+        <a href="shop.php" class="btn-primary-luxury">EXPLORAR COLECCIÓN</a>
     </div>
 </section>
 
-<!-- CATEGORÍAS -->
-<section class="categories-section fade-in">
-    <h2 class="section-title">NUESTRAS COLECCIONES</h2>
-    <div class="categories-grid">
-        <a href="shop.php?category=Hoodies" class="category-card">
-            <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/products%2Fhoodie_black.jpg?alt=media" alt="Hoodies" loading="lazy">
-            <div class="category-overlay">
-                <h3>HOODIES</h3>
-            </div>
+<!-- CATEGORIES LOOKBOOK -->
+<section class="lookbook-section">
+    <div class="lookbook-grid">
+        <a href="shop.php?category=Caballero" class="lookbook-item">
+            <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FCaballero_v2.jpg?alt=media" alt="Caballero" loading="lazy" decoding="async" />
+            <div class="lookbook-label">CABALLERO</div>
         </a>
-        <a href="shop.php?category=T-Shirts" class="category-card">
-            <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/products%2Ftshirt_white.jpg?alt=media" alt="T-Shirts" loading="lazy">
-            <div class="category-overlay">
-                <h3>T-SHIRTS</h3>
-            </div>
+        <a href="shop.php?category=Dama" class="lookbook-item">
+            <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FDama_v2.jpg?alt=media" alt="Dama" loading="lazy" decoding="async" />
+            <div class="lookbook-label">DAMA</div>
         </a>
-        <a href="shop.php?category=Accesorios" class="category-card">
-            <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/products%2Fcap_black.jpg?alt=media" alt="Accesorios" loading="lazy">
-            <div class="category-overlay">
-                <h3>ACCESORIOS</h3>
-            </div>
+        <a href="shop.php?category=Ediciones Limitadas" class="lookbook-item">
+            <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FEdiciones_Limitadas_v2.jpg?alt=media" alt="Ediciones Limitadas" loading="lazy" decoding="async" />
+            <div class="lookbook-label">LIMITED EDITION</div>
+        </a>
+        <a href="shop.php?category=Colecciones" class="lookbook-item">
+            <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FColecciones_v2.jpg?alt=media" alt="Colecciones" loading="lazy" decoding="async" />
+            <div class="lookbook-label">COLECCIONES</div>
         </a>
     </div>
 </section>
 
-<!-- PRODUCTOS DESTACADOS -->
-<section class="featured-products fade-in">
-    <h2 class="section-title">DESTACADOS</h2>
-    <div class="products-grid">
-        <!-- Ejemplo de producto estático destacado -->
-        <div class="product-card">
-            <div class="product-image-container">
-                <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/products%2Fhoodie_black.jpg?alt=media" alt="Xanarchy Essential Hoodie" class="product-image">
-                <div class="product-actions">
-                    <a href="shop.php" class="btn btn-primary btn-block">VER EN TIENDA</a>
-                </div>
-            </div>
-            <div class="product-info">
-                <h3 class="product-title">Essential Hoodie Black</h3>
-                <p class="product-price">,200 MXN</p>
-            </div>
-        </div>
-
-        <div class="product-card">
-            <div class="product-image-container">
-                <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/products%2Ftshirt_white.jpg?alt=media" alt="Xanarchy Basic Tee" class="product-image">
-                <div class="product-actions">
-                    <a href="shop.php" class="btn btn-primary btn-block">VER EN TIENDA</a>
-                </div>
-            </div>
-            <div class="product-info">
-                <h3 class="product-title">Basic Tee White</h3>
-                <p class="product-price"> MXN</p>
-            </div>
-        </div>
-
-        <div class="product-card">
-            <div class="product-image-container">
-                <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/products%2Fcap_black.jpg?alt=media" alt="Xanarchy Logo Cap" class="product-image">
-                <div class="product-actions">
-                    <a href="shop.php" class="btn btn-primary btn-block">VER EN TIENDA</a>
-                </div>
-            </div>
-            <div class="product-info">
-                <h3 class="product-title">Logo Cap Black</h3>
-                <p class="product-price"> MXN</p>
-            </div>
-        </div>
+<!-- POPULAR DESIGNS -->
+<section class="minimal-products-section">
+    <div class="section-header">
+        <h2>DISEÑOS ICÓNICOS</h2>
+        <a href="shop.php" class="view-all-link">VER TODO</a>
     </div>
-    <div class="view-all-container">
-        <a href="shop.php" class="btn btn-outline">VER TODO EL CATÁLOGO</a>
+    <div class="minimal-products-grid">
+        <?php
+        $productsRef = $db->collection('products');
+        $documents = $productsRef->where('stock', '>', 0)->documents();
+        $featured = [];
+        foreach ($documents as $doc) {
+            if ($doc->exists()) {
+                $p = $doc->data();
+                $p['id'] = $doc->id();
+                $featured[] = $p;
+            }
+        }
+        usort($featured, function($a, $b) {
+            $dateA = $a['created_at'] ?? '2000-01-01 00:00:00';
+            $dateB = $b['created_at'] ?? '2000-01-01 00:00:00';
+            return strtotime($dateB) - strtotime($dateA);
+        });
+        $featured = array_slice($featured, 0, 8);
+        
+        if (!empty($featured)):
+            foreach ($featured as $p): ?>
+                <div class="minimal-product-card">
+                    <a href="product.php?id=<?= $p['id'] ?>" class="product-image-link">
+                        <img src="<?= htmlspecialchars($p['image'], ENT_QUOTES) ?>" alt="<?= htmlspecialchars($p['name'], ENT_QUOTES) ?>" loading="lazy" />
+                        <div class="product-overlay">
+                            <span>VER DETALLES</span>
+                        </div>
+                    </a>
+                    <div class="product-meta">
+                        <h3 class="product-title"><a href="product.php?id=<?= $p['id'] ?>"><?= htmlspecialchars($p['name'], ENT_QUOTES) ?></a></h3>
+                        <span class="product-price">$<?= number_format($p['price'], 2) ?></span>
+                    </div>
+                </div>
+            <?php
+            endforeach;
+        else: ?>
+            <p class="empty-state">La bóveda está vacía por el momento.</p>
+        <?php endif; ?>
     </div>
 </section>
 
-<!-- MARQUESINA DE TEXTO -->
-<div class="marquee-container">
-    <div class="marquee-content">
-        <span>STREETWEAR</span>
-        <span>•</span>
-        <span>XANARCHY</span>
-        <span>•</span>
-        <span>PREMIUM QUALITY</span>
-        <span>•</span>
-        <span>LIMITED EDITION</span>
-        <span>•</span>
-        <span>STREETWEAR</span>
-        <span>•</span>
-        <span>XANARCHY</span>
-        <span>•</span>
-        <span>PREMIUM QUALITY</span>
-        <span>•</span>
-        <span>LIMITED EDITION</span>
+<!-- LUXURY SPLIT PROMO -->
+<section class="luxury-split-promo">
+    <div class="split-image">
+        <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FDescuento1_v2.jpg?alt=media" alt="Gothic Collection" loading="lazy" decoding="async" />
     </div>
-</div>
+    <div class="split-content">
+        <span class="promo-badge">ARCHIVOS EXCLUSIVOS</span>
+        <h2>40% OFF<br>GOTHIC COLLECTION</h2>
+        <p>Una exploración de la oscuridad a través de siluetas estructuradas y proporciones vanguardistas.</p>
+        <a href="shop.php?sale=gothic" class="btn-outline-luxury">DESCUBRIR</a>
+    </div>
+</section>
+
+<!-- EDITORIAL INFO SECTION -->
+<section class="editorial-info-section">
+    <div class="editorial-content">
+        <h2>IDENTIDAD XANARCHY</h2>
+        <p>No creamos simple ropa; esculpimos identidad. Cada pieza de Xanarchy es un manifiesto de diseño arquitectónico y precisión minimalista, pensado para quienes dictan las reglas del mañana.</p>
+        <a href="about.php" class="link-luxury">CONOCE EL MANIFIESTO</a>
+    </div>
+    <div class="editorial-image">
+        <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2Fquienes_somos_v2.jpg?alt=media" alt="Identidad Xanarchy" loading="lazy" decoding="async" />
+    </div>
+</section>
+
+<!-- NEW RELEASES -->
+<section class="minimal-products-section bg-light">
+    <div class="section-header">
+        <h2>NUEVOS LANZAMIENTOS</h2>
+    </div>
+    <div class="minimal-products-grid cols-4">
+        <?php
+        $productsRef = $db->collection('products');
+        $documents = $productsRef->where('stock', '>', 0)->documents();
+        $newDesigns = [];
+        foreach ($documents as $doc) {
+            if ($doc->exists()) {
+                $p = $doc->data();
+                $p['id'] = $doc->id();
+                $newDesigns[] = $p;
+            }
+        }
+        usort($newDesigns, function($a, $b) {
+            $dateA = $a['created_at'] ?? '2000-01-01 00:00:00';
+            $dateB = $b['created_at'] ?? '2000-01-01 00:00:00';
+            return strtotime($dateB) - strtotime($dateA);
+        });
+        $newDesigns = array_slice($newDesigns, 0, 4);
+
+        if (!empty($newDesigns)):
+            foreach ($newDesigns as $product): ?>
+                <div class="minimal-product-card">
+                    <a href="product.php?id=<?= $product['id'] ?>" class="product-image-link">
+                        <img src="<?= htmlspecialchars($product['image'], ENT_QUOTES) ?>" alt="<?= htmlspecialchars($product['name'], ENT_QUOTES) ?>" loading="lazy" />
+                        <div class="product-overlay">
+                            <span>VER DETALLES</span>
+                        </div>
+                    </a>
+                    <div class="product-meta">
+                        <h3 class="product-title"><a href="product.php?id=<?= $product['id'] ?>"><?= htmlspecialchars($product['name'], ENT_QUOTES) ?></a></h3>
+                        <span class="product-price">$<?= number_format($product['price'], 2) ?></span>
+                    </div>
+                </div>
+            <?php endforeach;
+        else: ?>
+            <p class="empty-state">Próximamente nuevos cortes.</p>
+        <?php endif; ?>
+    </div>
+</section>
+
+<!-- NEWSLETTER DARK BLOCK -->
+<?php if (!isset($_SESSION['user'])): ?>
+<section class="newsletter-dark">
+    <div class="newsletter-content">
+        <h2>ACCESO CLASIFICADO</h2>
+        <p>Únete a la élite. Regístrate para tener acceso anticipado a nuestras colecciones de edición limitada y piezas de archivo.</p>
+        <a href="register.php" class="btn-primary-luxury inverse">SOLICITAR ACCESO</a>
+    </div>
+</section>
+<?php endif; ?>
 
 <?php require_once 'includes/footer.php'; ?>
+</body>
+</html>

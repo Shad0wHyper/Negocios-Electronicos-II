@@ -1,6 +1,15 @@
 <?php
 // includes/footer.php
 ?>
+<?php if (!isset($_SESSION['user'])): ?>
+    <section class="newsletter-dark">
+        <div class="newsletter-content">
+            <h2>ACCESO CLASIFICADO</h2>
+            <p>Únete a la élite. Regístrate para tener acceso anticipado a nuestras colecciones de edición limitada y piezas de archivo.</p>
+            <a href="register.php" class="btn-primary-luxury inverse">SOLICITAR ACCESO</a>
+        </div>
+    </section>
+<?php endif; ?>
 </main> <!-- Cierre de site-main -->
 <footer class="xanarchy-footer-wrapper">
     <!-- MARCA DE AGUA FANTASMA -->
