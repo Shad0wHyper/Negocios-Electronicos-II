@@ -1,5 +1,8 @@
 <?php
 // includes/config.php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -30,9 +33,4 @@ try {
     $auth = $factory->createAuth();
 } catch (Exception $e) {
     die("Error de conexión Firebase: " . $e->getMessage());
-}
-
-// Iniciar sesión
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
 }

@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
 
 
 # Instalar extensión ZIP
-RUN docker-php-ext-install zip
+RUN docker-php-ext-install zip bcmath
 
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -31,6 +31,7 @@ RUN chown -R www-data:www-data /var/www/html
 # Exponer el puerto 8080 (Cloud Run lo requiere)
 RUN sed -i 's/80/8080/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
 EXPOSE 8080
+
 
 
 
