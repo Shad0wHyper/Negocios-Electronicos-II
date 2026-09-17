@@ -11,9 +11,6 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Instalar extensión gRPC (requerida por Firebase Admin SDK para Firestore)
-COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
-RUN install-php-extensions grpc
 
 # Instalar extensión ZIP
 RUN docker-php-ext-install zip
@@ -34,4 +31,5 @@ RUN chown -R www-data:www-data /var/www/html
 # Exponer el puerto 8080 (Cloud Run lo requiere)
 RUN sed -i 's/80/8080/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
 EXPOSE 8080
+
 
