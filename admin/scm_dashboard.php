@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
 
@@ -132,7 +132,7 @@ require_once __DIR__ . '/includes/header.php';
             </div>
             <div class="p-6">
                 <div class="flex items-center mb-4">
-                    <span class="px-3 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-800">En Desarrollo (Fase 1)</span>
+                    <span class="px-3 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-800">En Desarrollo</span>
                 </div>
                 <div class="space-y-3">
                     <label class="flex items-center space-x-3 text-sm text-gray-700">
@@ -149,11 +149,11 @@ require_once __DIR__ . '/includes/header.php';
                     </label>
                     <label class="flex items-center space-x-3 text-sm text-gray-400">
                         <input type="checkbox" disabled class="h-4 w-4 text-gray-300 rounded border-gray-300">
-                        <span>Estrategia Push/Pull implementada (Pendiente - Fase 2)</span>
+                        <span>Estrategia Push/Pull implementada (Pendiente)</span>
                     </label>
                     <label class="flex items-center space-x-3 text-sm text-gray-400">
                         <input type="checkbox" disabled class="h-4 w-4 text-gray-300 rounded border-gray-300">
-                        <span>Pedidos de Reposición (Pendiente - Fase 2)</span>
+                        <span>Pedidos de Reposición (Pendiente)</span>
                     </label>
                 </div>
                 <div class="mt-6 p-4 bg-gray-50 rounded-md">
