@@ -56,7 +56,7 @@ require_once __DIR__ . '/includes/header.php';
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr class="bg-white border-b">
-                            <td colspan="5" class="text-center py-4">No se encontraron productos.</td>
+                            <td colspan="8" class="text-center py-4">No se encontraron productos.</td>
                         </tr>
                     <?php endif; ?>
                     </tbody>

@@ -1,6 +1,16 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
+
+$suppliers = [];
+try {
+    $suppliersQuery = $db->collection('scm_suppliers')->documents();
+    foreach ($suppliersQuery as $doc) {
+        if ($doc->exists()) {
+            $suppliers[$doc->id()] = $doc->data()['name'] ?? 'Sin nombre';
+        }
+    }
+} catch (Exception $e) {}
 $errorMessage = '';
 $successMessage = '';
 
@@ -11,6 +21,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $description = $_POST['description'] ?? '';
     $price = $_POST['price'] ?? 0;
     $stock = $_POST['stock'] ?? 0;
+    $category = $_POST['category'] ?? 'Otro';
+    $supplier_id = $_POST['supplier_id'] ?? '';
+    $stock_minimo = $_POST['stock_minimo'] ?? 5;
+    $unit_cost = $_POST['unit_cost'] ?? 0;
     $image = $_FILES['image'];
 
     // 2. Validar datos
@@ -54,6 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'price' => (float)$price,
                     'stock' => (int)$stock,
                     'image' => $imageUrl,
+                    'category' => $category,
+                    'supplier_id' => $supplier_id,
+                    'stock_minimo' => (int)$stock_minimo,
+                    'unit_cost' => (float)$unit_cost,
                     'discount_percentage' => 0,
                     'created_at' => date('Y-m-d H:i:s')
                 ]);
@@ -94,12 +112,45 @@ require_once __DIR__ . '/includes/header.php';
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label for="price" class="block text-sm font-medium text-gray-700">Precio ($)</label>
+                    <label for="category" class="block text-sm font-medium text-gray-700">Categoría</label>
+                    <select name="category" id="category" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="T-Shirts">T-Shirts</option>
+                        <option value="Hoodies">Hoodies</option>
+                        <option value="Bottoms">Bottoms</option>
+                        <option value="Accesorios">Accesorios</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="supplier_id" class="block text-sm font-medium text-gray-700">Fabricante / Proveedor</label>
+                    <select name="supplier_id" id="supplier_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Selecciona un proveedor</option>
+                        <?php foreach ($suppliers as $id => $sName): ?>
+                            <option value="<?php echo htmlspecialchars($id); ?>"><?php echo htmlspecialchars($sName); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="price" class="block text-sm font-medium text-gray-700">Precio de Venta ($)</label>
                     <input type="number" name="price" id="price" step="0.01" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
                 <div>
-                    <label for="stock" class="block text-sm font-medium text-gray-700">Stock (Cantidad disponible)</label>
+                    <label for="unit_cost" class="block text-sm font-medium text-gray-700">Costo Unitario SCM ($)</label>
+                    <input type="number" name="unit_cost" id="unit_cost" step="0.01" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="stock" class="block text-sm font-medium text-gray-700">Stock Actual (Cantidad disponible)</label>
                     <input type="number" name="stock" id="stock" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="stock_minimo" class="block text-sm font-medium text-gray-700">Stock Mínimo (Alerta SCM)</label>
+                    <input type="number" name="stock_minimo" id="stock_minimo" required value="5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
             </div>
 

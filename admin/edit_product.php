@@ -1,6 +1,16 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
+
+$suppliers = [];
+try {
+    $suppliersQuery = $db->collection('scm_suppliers')->documents();
+    foreach ($suppliersQuery as $doc) {
+        if ($doc->exists()) {
+            $suppliers[$doc->id()] = $doc->data()['name'] ?? 'Sin nombre';
+        }
+    }
+} catch (Exception $e) {}
 // 1. Validar y obtener el ID del producto de la URL
 if (!isset($_GET['id']) || empty($_GET['id'])) {
     header('Location: products.php');
@@ -27,6 +37,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $description = $_POST['description'] ?? '';
     $price = $_POST['price'] ?? 0;
     $stock = $_POST['stock'] ?? 0;
+    $category = $_POST['category'] ?? 'Otro';
+    $supplier_id = $_POST['supplier_id'] ?? '';
+    $stock_minimo = $_POST['stock_minimo'] ?? 5;
+    $unit_cost = $_POST['unit_cost'] ?? 0;
     $currentImage = $product['image']; // Guardamos la ruta de la imagen actual
 
     // Validar datos básicos
@@ -71,7 +85,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'description' => $description,
                     'price' => (float)$price,
                     'stock' => (int)$stock,
-                    'image' => $currentImage
+                    'image' => $currentImage,
+                    'category' => $category,
+                    'supplier_id' => $supplier_id,
+                    'stock_minimo' => (int)$stock_minimo,
+                    'unit_cost' => (float)$unit_cost
                 ], ['merge' => true]);
 
                 header('Location: products.php');
@@ -110,12 +128,45 @@ require_once __DIR__ . '/includes/header.php';
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label for="price" class="block text-sm font-medium text-gray-700">Precio ($)</label>
+                    <label for="category" class="block text-sm font-medium text-gray-700">Categoría</label>
+                    <select name="category" id="category" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="T-Shirts" <?php echo ($product['category'] ?? '') === 'T-Shirts' ? 'selected' : ''; ?>>T-Shirts</option>
+                        <option value="Hoodies" <?php echo ($product['category'] ?? '') === 'Hoodies' ? 'selected' : ''; ?>>Hoodies</option>
+                        <option value="Bottoms" <?php echo ($product['category'] ?? '') === 'Bottoms' ? 'selected' : ''; ?>>Bottoms</option>
+                        <option value="Accesorios" <?php echo ($product['category'] ?? '') === 'Accesorios' ? 'selected' : ''; ?>>Accesorios</option>
+                        <option value="Otro" <?php echo ($product['category'] ?? '') === 'Otro' ? 'selected' : ''; ?>>Otro</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="supplier_id" class="block text-sm font-medium text-gray-700">Fabricante / Proveedor</label>
+                    <select name="supplier_id" id="supplier_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Selecciona un proveedor</option>
+                        <?php foreach ($suppliers as $id => $sName): ?>
+                            <option value="<?php echo htmlspecialchars($id); ?>" <?php echo ($product['supplier_id'] ?? '') === $id ? 'selected' : ''; ?>><?php echo htmlspecialchars($sName); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="price" class="block text-sm font-medium text-gray-700">Precio de Venta ($)</label>
                     <input type="number" name="price" id="price" value="<?php echo htmlspecialchars($product['price']); ?>" step="0.01" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
                 </div>
                 <div>
-                    <label for="stock" class="block text-sm font-medium text-gray-700">Stock</label>
+                    <label for="unit_cost" class="block text-sm font-medium text-gray-700">Costo Unitario SCM ($)</label>
+                    <input type="number" name="unit_cost" id="unit_cost" value="<?php echo htmlspecialchars($product['unit_cost'] ?? 0); ?>" step="0.01" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="stock" class="block text-sm font-medium text-gray-700">Stock Actual (Cantidad disponible)</label>
                     <input type="number" name="stock" id="stock" min="0" value="<?php echo htmlspecialchars($product['stock']); ?>" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                </div>
+                <div>
+                    <label for="stock_minimo" class="block text-sm font-medium text-gray-700">Stock Mínimo (Alerta SCM)</label>
+                    <input type="number" name="stock_minimo" id="stock_minimo" min="0" value="<?php echo htmlspecialchars($product['stock_minimo'] ?? 5); ?>" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
                 </div>
             </div>
 
