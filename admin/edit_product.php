@@ -89,7 +89,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'category' => $category,
                     'supplier_id' => $supplier_id,
                     'stock_minimo' => (int)$stock_minimo,
-                    'unit_cost' => (float)$unit_cost
+                    'unit_cost' => (float)$unit_cost,
+                    'strategy' => $_POST['strategy'] ?? ($product['strategy'] ?? 'PUSH')
                 ], ['merge' => true]);
 
                 header('Location: products.php');
@@ -135,6 +136,14 @@ require_once __DIR__ . '/includes/header.php';
                         <option value="Bottoms" <?php echo ($product['category'] ?? '') === 'Bottoms' ? 'selected' : ''; ?>>Bottoms</option>
                         <option value="Accesorios" <?php echo ($product['category'] ?? '') === 'Accesorios' ? 'selected' : ''; ?>>Accesorios</option>
                         <option value="Otro" <?php echo ($product['category'] ?? '') === 'Otro' ? 'selected' : ''; ?>>Otro</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="strategy" class="block text-sm font-medium text-gray-700">Estrategia logística</label>
+                    <select name="strategy" id="strategy" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                        <option value="PUSH" <?php echo ($product['strategy'] ?? 'PUSH') === 'PUSH' ? 'selected' : ''; ?>>PUSH (producción/compra anticipada)</option>
+                        <option value="PULL" <?php echo ($product['strategy'] ?? '') === 'PULL' ? 'selected' : ''; ?>>PULL (según demanda real)</option>
                     </select>
                 </div>
                 <div>

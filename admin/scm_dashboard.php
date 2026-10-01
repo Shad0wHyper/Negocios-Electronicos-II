@@ -53,6 +53,17 @@ require_once __DIR__ . '/includes/header.php';
     <div class="flex flex-wrap justify-between items-center gap-4 mb-8">
         <h2 class="text-3xl font-bold text-[var(--text-primary)]">Dashboard SCM (Supply Chain)</h2>
     </div>
+    <div class="flex flex-wrap gap-2 mb-8">
+        <a href="scm_products.php" class="px-3 py-2 rounded bg-white border text-sm hover:bg-gray-50">Productos</a>
+        <a href="scm_suppliers.php" class="px-3 py-2 rounded bg-white border text-sm hover:bg-gray-50">Proveedores</a>
+        <a href="scm_inventory.php" class="px-3 py-2 rounded bg-white border text-sm hover:bg-gray-50">Inventario</a>
+        <a href="scm_movements.php" class="px-3 py-2 rounded bg-white border text-sm hover:bg-gray-50">Movimientos</a>
+        <a href="scm_strategy.php" class="px-3 py-2 rounded bg-white border text-sm hover:bg-gray-50">Estrategia Push/Pull</a>
+        <a href="scm_strategy_compare.php" class="px-3 py-2 rounded bg-white border text-sm hover:bg-gray-50">Comparativo</a>
+        <a href="scm_orders.php" class="px-3 py-2 rounded bg-white border text-sm hover:bg-gray-50">Pedidos</a>
+        <a href="scm_maturity.php" class="px-3 py-2 rounded bg-white border text-sm hover:bg-gray-50">Madurez</a>
+        <a href="scm_reports.php" class="px-3 py-2 rounded bg-white border text-sm hover:bg-gray-50">Reportes</a>
+    </div>
 
     <!-- Metrics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -148,16 +159,16 @@ require_once __DIR__ . '/includes/header.php';
                         <span>Trazabilidad de movimientos (Completado)</span>
                     </label>
                     <label class="flex items-center space-x-3 text-sm text-gray-400">
-                        <input type="checkbox" disabled class="h-4 w-4 text-gray-300 rounded border-gray-300">
-                        <span>Estrategia Push/Pull implementada (Pendiente)</span>
+                        <input type="checkbox" checked disabled class="h-4 w-4 text-indigo-600 rounded border-gray-300">
+                        <span>Estrategia Push/Pull implementada</span>
                     </label>
                     <label class="flex items-center space-x-3 text-sm text-gray-400">
-                        <input type="checkbox" disabled class="h-4 w-4 text-gray-300 rounded border-gray-300">
-                        <span>Pedidos de Reposición (Pendiente)</span>
+                        <input type="checkbox" checked disabled class="h-4 w-4 text-indigo-600 rounded border-gray-300">
+                        <span>Pedidos de Reposición habilitados</span>
                     </label>
                 </div>
                 <div class="mt-6 p-4 bg-gray-50 rounded-md">
-                    <p class="text-sm text-gray-600">El sistema cuenta con los módulos principales funcionando (Proveedores, Productos, Inventario y Movimientos). Se implementarán estrategias logísticas y pedidos en la siguiente etapa.</p>
+                    <p class="text-sm text-gray-600">El módulo SCM integra catálogo, proveedores, inventario, trazabilidad, estrategias logísticas, pedidos de reposición y reportes.</p>
                 </div>
             </div>
         </div>

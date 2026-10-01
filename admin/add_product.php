@@ -72,6 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'supplier_id' => $supplier_id,
                     'stock_minimo' => (int)$stock_minimo,
                     'unit_cost' => (float)$unit_cost,
+                    'strategy' => $_POST['strategy'] ?? 'PUSH',
                     'discount_percentage' => 0,
                     'created_at' => date('Y-m-d H:i:s')
                 ]);
@@ -119,6 +120,14 @@ require_once __DIR__ . '/includes/header.php';
                         <option value="Bottoms">Bottoms</option>
                         <option value="Accesorios">Accesorios</option>
                         <option value="Otro">Otro</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="strategy" class="block text-sm font-medium text-gray-700">Estrategia logística</label>
+                    <select name="strategy" id="strategy" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                        <option value="PUSH">PUSH (producción/compra anticipada)</option>
+                        <option value="PULL">PULL (según demanda real)</option>
                     </select>
                 </div>
                 <div>

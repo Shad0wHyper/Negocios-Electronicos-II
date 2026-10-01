@@ -1,0 +1,12 @@
+<?php
+require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/auth_admin.php';
+$stats = ['products'=>0,'suppliers'=>0,'low'=>0,'orders'=>0,'push'=>0,'pull'=>0]; $best = [];
+foreach ($db->collection('products')->documents() as $doc) if ($doc->exists()) { $p = $doc->data(); $stats['products']++; $stock=(int)($p['stock']??0); if ($stock <= (int)($p['stock_minimo']??0)) $stats['low']++; if (($p['strategy']??'PUSH') === 'PULL') $stats['pull']++; else $stats['push']++; $best[] = ['name'=>$p['name']??'', 'stock'=>$stock]; }
+foreach ($db->collection('scm_suppliers')->documents() as $d) if ($d->exists()) $stats['suppliers']++;
+foreach ($db->collection('scm_orders')->documents() as $d) if ($d->exists()) $stats['orders']++;
+usort($best, fn($a,$b) => $b['stock'] <=> $a['stock']); $best = array_slice($best, 0, 5);
+require_once __DIR__ . '/includes/header.php';
+?>
+<div class="max-w-7xl mx-auto"><h2 class="text-3xl font-bold mb-8">Reportes SCM</h2><div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8"><?php foreach ([['Productos',$stats['products']],['Proveedores',$stats['suppliers']],['Pedidos',$stats['orders']],['Stock bajo',$stats['low']],['PUSH / PULL',$stats['push'].' / '.$stats['pull']]] as $card): ?><div class="bg-white border rounded-lg p-5"><div class="text-sm text-gray-500"><?php echo $card[0]; ?></div><div class="text-2xl font-bold mt-2"><?php echo $card[1]; ?></div></div><?php endforeach; ?></div><div class="grid lg:grid-cols-2 gap-6"><div class="bg-white border rounded-lg p-6"><h3 class="font-semibold mb-4">Inventario por producto</h3><?php foreach ($best as $p): ?><div class="mb-3"><div class="flex justify-between text-sm"><span><?php echo htmlspecialchars($p['name']); ?></span><b><?php echo $p['stock']; ?></b></div><div class="h-2 bg-gray-100 rounded mt-1"><div class="h-full bg-emerald-500 rounded" style="width: <?php echo min(100, $p['stock'] * 4); ?>%"></div></div></div><?php endforeach; ?></div><div class="bg-white border rounded-lg p-6"><h3 class="font-semibold mb-4">Accesos rápidos</h3><div class="grid grid-cols-2 gap-3"><a class="p-3 rounded bg-gray-50 hover:bg-gray-100" href="scm_inventory.php">Inventario</a><a class="p-3 rounded bg-gray-50 hover:bg-gray-100" href="scm_movements.php">Movimientos</a><a class="p-3 rounded bg-gray-50 hover:bg-gray-100" href="scm_strategy_compare.php">Push vs Pull</a><a class="p-3 rounded bg-gray-50 hover:bg-gray-100" href="scm_maturity.php">Madurez SCM</a></div></div></div></div>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>
