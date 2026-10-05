@@ -3917,3 +3917,33 @@ body.xanarchy-contact-page {
         font-size: 3.5rem;
     }
 }
+/* Stock validation */
+.stock-alert {
+    margin: 1rem 0;
+    padding: 0.85rem 1rem;
+    border-radius: 6px;
+}
+
+.stock-alert-error {
+    color: #991b1b;
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+}
+
+.stock-status {
+    display: block;
+    color: #166534;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+}
+
+.stock-status-error,
+.stock-status-out {
+    color: #b91c1c;
+    font-weight: 600;
+}
+
+.checkout-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}

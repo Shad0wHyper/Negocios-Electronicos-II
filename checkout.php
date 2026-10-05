@@ -2,6 +2,7 @@
 // checkout.php
 require_once 'includes/config.php';
 require_once 'includes/auth.php';  // Asegura que el usuario esté logueado
+require_once 'includes/stock.php';
 
 // 1) Verificar address_id
 if (!isset($_GET['address_id']) || empty($_GET['address_id'])) {
@@ -32,14 +33,25 @@ if (empty($product_ids)) {
 
 // 4) Cargar productos
 $products = [];
-$productsRef = $db->collection('products');
+$stockErrors = [];
 foreach ($product_ids as $pid) {
-    $doc = $productsRef->document($pid)->snapshot();
-    if ($doc->exists()) {
-        $p = $doc->data();
-        $p['id'] = $doc->id();
+    $p = getProductForStock($db, $pid);
+    if ($p) {
+        $requested = (int)$cart[$p['id']];
+        $message = stockMessage($p, $requested);
+        if ($message !== '') {
+            $stockErrors[] = $message;
+        }
         $products[] = $p;
+    } else {
+        $stockErrors[] = 'Uno o más productos del carrito ya no están disponibles.';
     }
+}
+
+if (!empty($stockErrors)) {
+    $_SESSION['cart_error'] = implode(' ', $stockErrors);
+    header('Location: cart.php');
+    exit;
 }
 
 // 5) Calcular totales
