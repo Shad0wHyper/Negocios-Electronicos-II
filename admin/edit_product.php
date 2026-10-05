@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
+require_once __DIR__ . '/../includes/scm_functions.php';
 
 $suppliers = [];
 try {
@@ -80,6 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 5. Actualizar la base de datos (solo si no hubo errores con la imagen)
         if (empty($errorMessage)) {
             try {
+                $newStrategy = $_POST['strategy'] ?? ($product['strategy'] ?? 'PUSH');
                 $productRef->set([
                     'name' => $name,
                     'description' => $description,
@@ -90,8 +92,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'supplier_id' => $supplier_id,
                     'stock_minimo' => (int)$stock_minimo,
                     'unit_cost' => (float)$unit_cost,
-                    'strategy' => $_POST['strategy'] ?? ($product['strategy'] ?? 'PUSH')
+                    'strategy' => $newStrategy
                 ], ['merge' => true]);
+                if ($newStrategy === 'PUSH' || $newStrategy !== ($product['strategy'] ?? 'PUSH')) {
+                    aplicarReposicionPush($db, $productId);
+                }
 
                 header('Location: products.php');
                 exit;

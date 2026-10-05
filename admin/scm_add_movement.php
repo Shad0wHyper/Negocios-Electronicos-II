@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
+require_once __DIR__ . '/../includes/scm_functions.php';
 
 $errorMessage = '';
 $successMessage = '';
@@ -60,6 +61,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     // 2. Actualizar el stock del producto
                     $productRef->set(['stock' => $newStock], ['merge' => true]);
+                    if ($type === 'Salida') {
+                        aplicarReposicionPush($db, $product_id);
+                    }
 
                     header('Location: scm_movements.php');
                     exit;

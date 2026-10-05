@@ -1,6 +1,7 @@
 ﻿<?php
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
+require_once __DIR__ . '/../includes/scm_functions.php';
 
 // 1. Total Suppliers
 $totalSuppliers = 0;
@@ -23,7 +24,7 @@ foreach ($pDocs as $doc) {
         
         $totalInventoryValue += ($stock * $cost);
         
-        if ($stock <= $min) {
+        if (scmIsLowStock($p)) {
             $lowStockProducts++;
             $p['id'] = $doc->id();
             $products[] = $p; // Save for low stock table

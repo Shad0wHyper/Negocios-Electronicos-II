@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
+require_once __DIR__ . '/../includes/scm_functions.php';
 
 $search = trim($_GET['q'] ?? '');
 $category = trim($_GET['category'] ?? '');
@@ -35,7 +36,7 @@ require_once __DIR__ . '/includes/header.php';
         <table class="w-full text-sm text-left text-gray-600">
             <thead class="text-xs uppercase bg-gray-50 text-gray-700"><tr><th class="px-6 py-3">Imagen</th><th class="px-6 py-3">Nombre</th><th class="px-6 py-3">Categoría</th><th class="px-6 py-3">Stock</th><th class="px-6 py-3">Stock mín.</th><th class="px-6 py-3">Estrategia</th><th class="px-6 py-3">Acciones</th></tr></thead>
             <tbody>
-            <?php foreach ($products as $p): $low = (int)($p['stock'] ?? 0) <= (int)($p['stock_minimo'] ?? 0); ?>
+            <?php foreach ($products as $p): $low = scmIsLowStock($p); ?>
                 <tr class="border-b hover:bg-gray-50">
                     <td class="px-6 py-4"><img src="<?php echo htmlspecialchars($p['image'] ?? ''); ?>" class="w-10 h-10 object-cover rounded" alt=""></td>
                     <td class="px-6 py-4 font-medium text-gray-900"><?php echo htmlspecialchars($p['name'] ?? ''); ?></td>

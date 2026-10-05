@@ -1,12 +1,16 @@
 <?php
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
+require_once __DIR__ . '/../includes/scm_functions.php';
 $message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = trim($_POST['product_id'] ?? '');
     $strategy = ($_POST['strategy'] ?? '') === 'PULL' ? 'PULL' : 'PUSH';
     if ($id !== '') {
         $db->collection('products')->document($id)->set(['strategy' => $strategy], ['merge' => true]);
+        if ($strategy === 'PUSH') {
+            aplicarReposicionPush($db, $id);
+        }
         $message = 'Estrategia actualizada correctamente.';
     }
 }

@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
+require_once __DIR__ . '/../includes/scm_functions.php';
 
 $products = [];
 $documents = $db->collection('products')->orderBy('name')->documents();
@@ -37,7 +38,7 @@ require_once __DIR__ . '/includes/header.php';
                     <?php foreach($products as $p): 
                         $stock = (int)($p['stock'] ?? 0);
                         $min = (int)($p['stock_minimo'] ?? 0);
-                        $isLow = $stock <= $min;
+                        $isLow = scmIsLowStock($p);
                     ?>
                         <tr class="bg-white border-b hover:bg-gray-50">
                             <td class="px-6 py-4 font-medium text-gray-900">
@@ -64,7 +65,10 @@ require_once __DIR__ . '/includes/header.php';
                                 <?php endif; ?>
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <a href="scm_add_movement.php?product_id=<?php echo $p['id']; ?>" class="text-[var(--primary-color)] hover:underline">Ajustar</a>
+                                <a href="scm_add_movement.php?product_id=<?php echo $p['id']; ?>" class="text-[var(--primary-color)] hover:underline">Ver</a>
+                                <?php if ($isLow && ($p['strategy'] ?? 'PUSH') === 'PULL'): ?>
+                                    <a href="scm_add_order.php?product_id=<?php echo urlencode($p['id']); ?>&quantity=<?php echo max(1, $min - $stock); ?>" class="ml-3 text-blue-600 hover:underline">Generar pedido PULL</a>
+                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>

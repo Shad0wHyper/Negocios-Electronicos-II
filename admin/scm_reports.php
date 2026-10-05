@@ -1,8 +1,9 @@
 <?php
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_admin.php';
+require_once __DIR__ . '/../includes/scm_functions.php';
 $stats = ['products'=>0,'suppliers'=>0,'low'=>0,'orders'=>0,'push'=>0,'pull'=>0]; $best = [];
-foreach ($db->collection('products')->documents() as $doc) if ($doc->exists()) { $p = $doc->data(); $stats['products']++; $stock=(int)($p['stock']??0); if ($stock <= (int)($p['stock_minimo']??0)) $stats['low']++; if (($p['strategy']??'PUSH') === 'PULL') $stats['pull']++; else $stats['push']++; $best[] = ['name'=>$p['name']??'', 'stock'=>$stock]; }
+foreach ($db->collection('products')->documents() as $doc) if ($doc->exists()) { $p = $doc->data(); $stats['products']++; $stock=(int)($p['stock']??0); if (scmIsLowStock($p)) $stats['low']++; if (($p['strategy']??'PUSH') === 'PULL') $stats['pull']++; else $stats['push']++; $best[] = ['name'=>$p['name']??'', 'stock'=>$stock]; }
 foreach ($db->collection('scm_suppliers')->documents() as $d) if ($d->exists()) $stats['suppliers']++;
 foreach ($db->collection('scm_orders')->documents() as $d) if ($d->exists()) $stats['orders']++;
 usort($best, fn($a,$b) => $b['stock'] <=> $a['stock']); $best = array_slice($best, 0, 5);
