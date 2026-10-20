@@ -35,7 +35,7 @@ try {
         $userData = [
             'name' => $displayName,
             'email' => $email,
-            'role' => 'user', // Rol por defecto
+            'role' => 'customer', // Rol por defecto
             'created_at' => date('Y-m-d H:i:s')
         ];
         $userRef->set($userData);
@@ -49,7 +49,11 @@ try {
     // Iniciar la sesión de PHP
     $_SESSION['user'] = $userData;
     
-    echo json_encode(['success' => true, 'redirect' => ($userData['role'] === 'admin' ? 'admin/dashboard.php' : 'index.php')]);
+    $staffRoles = ['admin', 'vendedor', 'logistica'];
+    $redirect = in_array($userData['role'] ?? '', $staffRoles, true)
+        ? 'admin/dashboard.php'
+        : 'index.php';
+    echo json_encode(['success' => true, 'redirect' => $redirect]);
     
 } catch (\Kreait\Firebase\Exception\Auth\FailedToVerifyToken $e) {
     echo json_encode(['success' => false, 'error' => 'Token inválido: ' . $e->getMessage()]);

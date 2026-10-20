@@ -194,7 +194,7 @@ CREATE TABLE `users` (
   `name` varchar(100) NOT NULL,
   `email` varchar(150) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `role` enum('customer','vendor','admin') NOT NULL DEFAULT 'customer',
+  `role` enum('customer','vendedor','logistica','admin') NOT NULL DEFAULT 'customer',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `crm_stage` enum('Prospecto','Activo','Frecuente','Inactivo') NOT NULL DEFAULT 'Prospecto',
   `crm_stage_manual` tinyint(1) DEFAULT 0,
