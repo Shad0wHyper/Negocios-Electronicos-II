@@ -2,9 +2,9 @@
 // forgot_password.php
 require_once 'includes/config.php';
 
-// Si ya está logueado, redirigir al inicio
+// Si ya está logueado, redirigir según su rol
 if (isset($_SESSION['user'])) {
-    header('Location: index.php');
+    header('Location: ' . getRoleDashboardUrl($_SESSION['user']['role'] ?? 'user'));
     exit;
 }
 ?>

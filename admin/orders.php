@@ -36,6 +36,9 @@ require_once __DIR__ . '/includes/header.php';
     <div class="max-w-7xl mx-auto">
         <div class="flex flex-wrap justify-between items-center gap-4 mb-8">
             <h2 class="text-3xl font-bold text-[var(--text-primary)]">Gestión de Pedidos</h2>
+            <a href="erp_new_order.php" class="rounded-md bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors">
+                + Nueva orden
+            </a>
         </div>
 
         <div class="bg-white rounded-lg shadow-sm border border-[var(--border-color)] overflow-hidden">

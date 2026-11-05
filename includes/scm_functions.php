@@ -156,6 +156,8 @@ function scmRegisterPurchaseEntry($db, string $orderId): array
         }
         $movementRef = $db->collection('scm_movements')->newDocument();
         $now = date('Y-m-d H:i:s');
+        $actorRole = function_exists('normalizeUserRole') ? normalizeUserRole($_SESSION['user']['role'] ?? 'admin') : 'admin';
+        $actorLabel = function_exists('getRoleActorLabel') ? getRoleActorLabel($actorRole) : 'Admin';
         $transaction->create($movementRef, [
             'product_id' => $productId,
             'type' => 'Entrada',
@@ -164,7 +166,8 @@ function scmRegisterPurchaseEntry($db, string $orderId): array
             'purchase_order_id' => $orderRef->id(),
             'order_id' => $orderRef->id(),
             'user_id' => $_SESSION['user']['id'] ?? 'admin',
-            'user_name' => $_SESSION['user']['name'] ?? 'Admin',
+            'user_role' => $actorRole,
+            'user_name' => $actorLabel,
             'created_at' => $now,
         ]);
         $newStock = scmProductStock($productSnapshot->data()) + $quantity;
@@ -205,6 +208,8 @@ function scmCancelPurchaseOrder($db, string $orderId): array
             }
             $movementRef = $db->collection('scm_movements')->newDocument();
             $now = date('Y-m-d H:i:s');
+            $actorRole = function_exists('normalizeUserRole') ? normalizeUserRole($_SESSION['user']['role'] ?? 'admin') : 'admin';
+            $actorLabel = function_exists('getRoleActorLabel') ? getRoleActorLabel($actorRole) : 'Admin';
             $transaction->create($movementRef, [
                 'product_id' => (string)$order['product_id'],
                 'type' => 'Salida',
@@ -213,15 +218,18 @@ function scmCancelPurchaseOrder($db, string $orderId): array
                 'purchase_order_id' => $orderRef->id(),
                 'order_id' => $orderRef->id(),
                 'user_id' => $_SESSION['user']['id'] ?? 'admin',
-                'user_name' => $_SESSION['user']['name'] ?? 'Admin',
+                'user_role' => $actorRole,
+                'user_name' => $actorLabel,
                 'created_at' => $now,
             ]);
             $transaction->update($productRef, [['path' => 'stock', 'value' => $stock - $quantity]]);
         }
+        $actorRoleCancel = function_exists('normalizeUserRole') ? normalizeUserRole($_SESSION['user']['role'] ?? 'admin') : 'admin';
+        $actorLabelCancel = function_exists('getRoleActorLabel') ? getRoleActorLabel($actorRoleCancel) : 'Admin';
         $transaction->update($orderRef, [
             ['path' => 'status', 'value' => 'Cancelado'],
             ['path' => 'cancelled_at', 'value' => date('Y-m-d H:i:s')],
-            ['path' => 'cancelled_by', 'value' => $_SESSION['user']['name'] ?? 'Admin'],
+            ['path' => 'cancelled_by', 'value' => $actorLabelCancel],
         ]);
         return ['already_cancelled' => false, 'reverted_quantity' => $quantity];
     });

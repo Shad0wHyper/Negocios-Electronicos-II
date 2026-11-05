@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
 
     // Validaciones
-    if (empty($name) || !filter_var($email, FILTER_VALIDATE_EMAIL) || !in_array($role, ['customer', 'admin'])) {
+    if (empty($name) || !filter_var($email, FILTER_VALIDATE_EMAIL) || !in_array($role, ['customer', 'user', 'admin', 'vendedor', 'logistica'], true)) {
         $error = 'Por favor, completa los campos correctamente.';
     } else {
         // Comprobar si el nuevo email ya está en uso por OTRO usuario
@@ -99,9 +99,12 @@ require_once __DIR__ . '/includes/header.php';
 
             <div>
                 <label for="role" class="block text-sm font-medium text-gray-700">Rol del Usuario</label>
+                <?php $currentRole = normalizeUserRole($user['role'] ?? 'customer'); ?>
                 <select name="role" id="role" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                    <option value="customer" <?php echo ($user['role'] === 'customer') ? 'selected' : ''; ?>>Customer</option>
-                    <option value="admin" <?php echo ($user['role'] === 'admin') ? 'selected' : ''; ?>>Admin</option>
+                    <option value="customer" <?php echo ($currentRole === 'customer' || $currentRole === 'user') ? 'selected' : ''; ?>>Customer (Cliente)</option>
+                    <option value="vendedor" <?php echo ($currentRole === 'vendedor') ? 'selected' : ''; ?>>Vendedor (Ventas)</option>
+                    <option value="logistica" <?php echo ($currentRole === 'logistica') ? 'selected' : ''; ?>>Logística (SCM / Inventario)</option>
+                    <option value="admin" <?php echo ($currentRole === 'admin') ? 'selected' : ''; ?>>Admin (Administrador)</option>
                 </select>
             </div>
 

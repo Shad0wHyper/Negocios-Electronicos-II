@@ -2,9 +2,9 @@
 // login.php
 require_once 'includes/config.php';
 
-// Si ya está logueado, redirigir al inicio
+// Si ya está logueado, redirigir según su rol
 if (isset($_SESSION['user'])) {
-    header('Location: index.php');
+    header('Location: ' . getRoleDashboardUrl($_SESSION['user']['role'] ?? 'user'));
     exit;
 }
 ?>
@@ -34,14 +34,17 @@ if (isset($_SESSION['user'])) {
             transition: all 0.2s ease;
             margin-bottom: 20px;
         }
+
         .google-btn:hover {
             background-color: #f7f7f7;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
+
         .google-icon {
             width: 20px;
             height: 20px;
         }
+
         .divider {
             display: flex;
             align-items: center;
@@ -49,13 +52,21 @@ if (isset($_SESSION['user'])) {
             margin: 20px 0;
             color: #888;
         }
-        .divider::before, .divider::after {
+
+        .divider::before,
+        .divider::after {
             content: '';
             flex: 1;
             border-bottom: 1px solid #eee;
         }
-        .divider::before { margin-right: .5em; }
-        .divider::after { margin-left: .5em; }
+
+        .divider::before {
+            margin-right: .5em;
+        }
+
+        .divider::after {
+            margin-left: .5em;
+        }
     </style>
 </head>
 
@@ -65,7 +76,8 @@ if (isset($_SESSION['user'])) {
         <div class="login-form-container">
             <a href="index.php" class="login-logo-link" title="Volver a la tienda">
                 <span class="back-arrow">←</span>
-                <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FLogo_Final.png?alt=media" alt="Xanarchy Logo" class="login-logo">
+                <img src="https://firebasestorage.googleapis.com/v0/b/xanarchy-store.firebasestorage.app/o/ui-assets%2FLogo_Final.png?alt=media"
+                    alt="Xanarchy Logo" class="login-logo">
             </a>
 
             <div class="form-wrapper">
@@ -75,7 +87,8 @@ if (isset($_SESSION['user'])) {
                 <p class="error-msg" id="error-msg" style="display: none;"></p>
 
                 <button class="google-btn" id="google-login-btn">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="google-icon">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"
+                        class="google-icon">
                     Continuar con Google
                 </button>
 
@@ -91,7 +104,9 @@ if (isset($_SESSION['user'])) {
                         <label for="password">Contraseña</label>
                     </div>
                     <div style="text-align: right; margin-bottom: 20px;">
-                        <a href="forgot_password.php" style="font-size: 0.85rem; color: #666; text-decoration: none;">¿Olvidaste tu contraseña?</a>
+                        <a href="forgot_password.php"
+                            style="font-size: 0.85rem; color: #666; text-decoration: none;">¿Olvidaste tu
+                            contraseña?</a>
                     </div>
 
                     <button type="submit" class="btn-primary" id="submit-btn">Entrar</button>
@@ -110,7 +125,14 @@ if (isset($_SESSION['user'])) {
 
     <!-- Firebase Auth Script -->
     <script type="module">
-        import { auth, googleProvider, signInWithPopup, signInWithEmailAndPassword, sendPasswordResetEmail } from './js/firebase-auth.js';
+        import { auth, googleProvider, signInWithPopup, signInWithEmailAndPassword, sendPasswordResetEmail, signOut } from './js/firebase-auth.js';
+
+        // Si viene de cerrar sesión, asegurar cierre también en el cliente Firebase
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('logged_out') === '1') {
+            signOut(auth).catch(() => { });
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
 
         const form = document.getElementById('login-form');
         const googleBtn = document.getElementById('google-login-btn');
@@ -126,7 +148,7 @@ if (isset($_SESSION['user'])) {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ idToken })
                 });
-                
+
                 const data = await response.json();
                 if (data.success) {
                     window.location.href = data.redirect;

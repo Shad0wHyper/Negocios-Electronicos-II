@@ -26,30 +26,53 @@ try {
     $email = $verifiedIdToken->claims()->get('email');
     $displayName = $verifiedIdToken->claims()->get('name') ?? 'Usuario';
     
-    // Verificar si el usuario existe en Firestore
+    // Verificar si el usuario existe en Firestore (por UID o por email si fue migrado/creado desde panel)
     $userRef = $db->collection('users')->document($uid);
     $snapshot = $userRef->snapshot();
+    $docId = $uid;
     
     if (!$snapshot->exists()) {
-        // Es un usuario nuevo (por ejemplo, inició sesión con Google por primera vez)
-        $userData = [
-            'name' => $displayName,
-            'email' => $email,
-            'role' => 'user', // Rol por defecto
-            'created_at' => date('Y-m-d H:i:s')
-        ];
-        $userRef->set($userData);
+        $existingByEmail = null;
+        if (!empty($email)) {
+            $emailQuery = $db->collection('users')->where('email', '=', $email)->documents();
+            foreach ($emailQuery as $doc) {
+                if ($doc->exists()) {
+                    $existingByEmail = $doc;
+                    break;
+                }
+            }
+        }
+
+        if ($existingByEmail !== null) {
+            $userData = $existingByEmail->data();
+            $docId = $existingByEmail->id();
+        } else {
+            // Es un usuario nuevo (por ejemplo, inició sesión con Google por primera vez)
+            $userData = [
+                'name' => $displayName,
+                'email' => $email,
+                'role' => 'user', // Rol por defecto
+                'created_at' => date('Y-m-d H:i:s')
+            ];
+            $userRef->set($userData);
+        }
     } else {
         $userData = $snapshot->data();
     }
     
-    // Añadir el ID al array de sesión
-    $userData['id'] = $uid;
+    // Normalizar rol y añadir el ID al array de sesión
+    $userData['role'] = normalizeUserRole($userData['role'] ?? 'user');
+    $userData['id'] = $docId;
+    $userData['uid'] = $uid;
     
     // Iniciar la sesión de PHP
     $_SESSION['user'] = $userData;
     
-    echo json_encode(['success' => true, 'redirect' => ($userData['role'] === 'admin' ? 'admin/dashboard.php' : 'index.php')]);
+    echo json_encode([
+        'success' => true,
+        'role' => $userData['role'],
+        'redirect' => getRoleDashboardUrl($userData['role'])
+    ]);
     
 } catch (\Kreait\Firebase\Exception\Auth\FailedToVerifyToken $e) {
     echo json_encode(['success' => false, 'error' => 'Token inválido: ' . $e->getMessage()]);

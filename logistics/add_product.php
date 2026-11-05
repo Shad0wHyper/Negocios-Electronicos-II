@@ -1,0 +1,174 @@
+<?php
+// logistics/add_product.php
+require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/auth_logistics.php';
+
+$suppliers = [];
+try {
+    $suppliersQuery = $db->collection('scm_suppliers')->documents();
+    foreach ($suppliersQuery as $doc) {
+        if ($doc->exists()) {
+            $suppliers[$doc->id()] = $doc->data()['name'] ?? 'Sin nombre';
+        }
+    }
+} catch (Exception $e) {}
+
+$errorMessage = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = $_POST['name'] ?? '';
+    $description = $_POST['description'] ?? '';
+    $price = $_POST['price'] ?? 0;
+    $stock = $_POST['stock'] ?? 0;
+    $category = $_POST['category'] ?? 'Otro';
+    $supplier_id = $_POST['supplier_id'] ?? '';
+    $stock_minimo = $_POST['stock_minimo'] ?? 5;
+    $unit_cost = $_POST['unit_cost'] ?? 0;
+    $image = $_FILES['image'];
+
+    if (empty($name) || empty($price)) {
+        $errorMessage = 'Los campos nombre y precio son obligatorios.';
+    } elseif ($stock < 0) {
+        $errorMessage = 'El stock no puede ser un número negativo.';
+    } elseif ($image['error'] !== UPLOAD_ERR_OK) {
+        $errorMessage = 'Hubo un error al subir la imagen.';
+    } else {
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $maxSize = 5 * 1024 * 1024;
+
+        if (!in_array($image['type'], $allowedTypes, true)) {
+            $errorMessage = 'Tipo de archivo no permitido. Solo se aceptan JPEG, PNG, GIF, WEBP.';
+        } elseif ($image['size'] > $maxSize) {
+            $errorMessage = 'El archivo es demasiado grande. El máximo es 5 MB.';
+        } else {
+            $imageExtension = pathinfo($image['name'], PATHINFO_EXTENSION);
+            $newImageName = uniqid('prod_', true) . '.' . $imageExtension;
+            $storagePath = 'products/' . $newImageName;
+
+            try {
+                $bucket->upload(
+                    fopen($image['tmp_name'], 'r'),
+                    ['name' => $storagePath]
+                );
+                
+                $imageUrl = sprintf(
+                    'https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media',
+                    $bucket->name(),
+                    rawurlencode($storagePath)
+                );
+
+                $db->collection('products')->add([
+                    'name' => $name,
+                    'description' => $description,
+                    'price' => (float)$price,
+                    'stock' => (int)$stock,
+                    'image' => $imageUrl,
+                    'category' => $category,
+                    'supplier_id' => $supplier_id,
+                    'stock_minimo' => (int)$stock_minimo,
+                    'unit_cost' => (float)$unit_cost,
+                    'strategy' => $_POST['strategy'] ?? 'PUSH',
+                    'discount_percentage' => 0,
+                    'created_at' => date('Y-m-d H:i:s')
+                ]);
+
+                header('Location: products.php');
+                exit;
+            } catch (Exception $e) {
+                $errorMessage = "Error al guardar en Firebase: " . $e->getMessage();
+            }
+        }
+    }
+}
+
+require_once __DIR__ . '/includes/header.php';
+?>
+
+<div class="max-w-4xl mx-auto">
+    <h2 class="text-3xl font-bold text-[var(--text-primary)] mb-8">Agregar Nuevo Producto</h2>
+
+    <?php if ($errorMessage): ?>
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <span class="block sm:inline"><?php echo htmlspecialchars($errorMessage); ?></span>
+        </div>
+    <?php endif; ?>
+
+    <form action="add_product.php" method="POST" enctype="multipart/form-data" class="bg-white p-8 rounded-lg shadow-sm border border-[var(--border-color)] space-y-6">
+        <div>
+            <label for="name" class="block text-sm font-medium text-gray-700">Nombre del Producto</label>
+            <input type="text" name="name" id="name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+        </div>
+
+        <div>
+            <label for="description" class="block text-sm font-medium text-gray-700">Descripción</label>
+            <textarea name="description" id="description" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label for="category" class="block text-sm font-medium text-gray-700">Categoría</label>
+                <select name="category" id="category" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="T-Shirts">T-Shirts</option>
+                    <option value="Hoodies">Hoodies</option>
+                    <option value="Bottoms">Bottoms</option>
+                    <option value="Accesorios">Accesorios</option>
+                    <option value="Otro">Otro</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="strategy" class="block text-sm font-medium text-gray-700">Estrategia logística</label>
+                <select name="strategy" id="strategy" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    <option value="PUSH">PUSH (producción/compra anticipada)</option>
+                    <option value="PULL">PULL (según demanda real)</option>
+                </select>
+            </div>
+            <div>
+                <label for="supplier_id" class="block text-sm font-medium text-gray-700">Fabricante / Proveedor</label>
+                <select name="supplier_id" id="supplier_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">Selecciona un proveedor</option>
+                    <?php foreach ($suppliers as $id => $sName): ?>
+                        <option value="<?php echo htmlspecialchars($id); ?>"><?php echo htmlspecialchars($sName); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label for="price" class="block text-sm font-medium text-gray-700">Precio de Venta ($)</label>
+                <input type="number" name="price" id="price" step="0.01" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label for="unit_cost" class="block text-sm font-medium text-gray-700">Costo Unitario SCM ($)</label>
+                <input type="number" name="unit_cost" id="unit_cost" step="0.01" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label for="stock" class="block text-sm font-medium text-gray-700">Stock Actual (Cantidad disponible)</label>
+                <input type="number" name="stock" id="stock" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label for="stock_minimo" class="block text-sm font-medium text-gray-700">Stock Mínimo (Alerta SCM)</label>
+                <input type="number" name="stock_minimo" id="stock_minimo" required value="5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            </div>
+        </div>
+
+        <div>
+            <label for="image" class="block text-sm font-medium text-gray-700">Imagen del Producto</label>
+            <input type="file" name="image" id="image" required class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+        </div>
+
+        <div class="text-right">
+            <a href="products.php" class="text-gray-600 mr-4">Cancelar</a>
+            <button type="submit" class="inline-flex justify-center py-2 px-6 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)]">
+                Guardar Producto
+            </button>
+        </div>
+    </form>
+</div>
+
+<?php require_once __DIR__ . '/includes/footer.php'; ?>
+
