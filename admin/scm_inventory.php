@@ -65,8 +65,8 @@ require_once __DIR__ . '/includes/header.php';
                                 <?php endif; ?>
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <a href="scm_add_movement.php?product_id=<?php echo $p['id']; ?>" class="text-[var(--primary-color)] hover:underline">Ver</a>
-                                <?php if ($isLow && ($p['strategy'] ?? 'PUSH') === 'PULL'): ?>
+                                <a href="scm_add_movement.php?product_id=<?php echo urlencode($p['id']); ?>" class="text-[var(--primary-color)] hover:underline">Registrar movimiento</a>
+                                <?php if ($isLow && ($p['strategy'] ?? 'PUSH') === 'PULL' && normalizeUserRole($_SESSION['user']['role'] ?? '') === 'admin'): ?>
                                     <a href="scm_add_order.php?product_id=<?php echo urlencode($p['id']); ?>&quantity=<?php echo max(1, $min - $stock); ?>" class="ml-3 text-blue-600 hover:underline">Generar pedido PULL</a>
                                 <?php endif; ?>
                             </td>

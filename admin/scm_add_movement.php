@@ -49,13 +49,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         : $currentStock - $quantity;
 
                     // 1. Registrar el movimiento
+                    $actorRole = normalizeUserRole($_SESSION['user']['role'] ?? 'admin');
+                    $actorLabel = getRoleActorLabel($actorRole);
                     $db->collection('scm_movements')->add([
                         'product_id' => $product_id,
                         'type' => $type,
                         'quantity' => $quantity,
                         'reason' => $reason,
                         'user_id' => $_SESSION['user']['id'] ?? '',
-                        'user_name' => $_SESSION['user']['name'] ?? 'Admin',
+                        'user_role' => $actorRole,
+                        'user_name' => $actorLabel,
                         'created_at' => date('Y-m-d H:i:s')
                     ]);
 

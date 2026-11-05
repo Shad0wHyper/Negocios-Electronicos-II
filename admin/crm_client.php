@@ -195,9 +195,11 @@ require_once __DIR__ . '/includes/header.php';
                         <a href="mailto:<?php echo htmlspecialchars($client['email']); ?>?subject=Información de Xanarchy" target="_blank" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-semibold py-2 px-4 rounded border text-center transition-colors">
                             ✉️ Enviar Correo
                         </a>
-                        <a href="edit_user.php?id=<?php echo (int)$client['id']; ?>&return=crm" class="flex-1 bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] text-white text-sm font-semibold py-2 px-4 rounded border text-center transition-colors">
-                            Editar cliente
-                        </a>
+                        <?php if (normalizeUserRole($_SESSION['user']['role'] ?? '') === 'admin'): ?>
+                            <a href="edit_user.php?id=<?php echo urlencode((string)$client['id']); ?>&return=crm" class="flex-1 bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] text-white text-sm font-semibold py-2 px-4 rounded border text-center transition-colors">
+                                Editar cliente
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

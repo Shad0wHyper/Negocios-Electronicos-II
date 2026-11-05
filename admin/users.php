@@ -50,7 +50,7 @@ require_once __DIR__ . '/includes/header.php';
                                 <td class="px-6 py-4">
                                     <span class="px-2 py-1 font-semibold leading-tight text-xs rounded-full
                                         <?php echo ($user['role'] === 'admin') ? 'text-green-700 bg-green-100' : 'text-gray-700 bg-gray-100'; ?>">
-                                        <?php echo htmlspecialchars(['vendedor' => 'Vendedor', 'logistica' => 'Logística', 'customer' => 'Customer', 'admin' => 'Admin'][$user['role']] ?? ucfirst($user['role'])); ?>
+                                        <?php echo ucfirst($user['role']); ?>
                                     </span>
                                 </td>
                                 <td class="px-6 py-4"><?php echo date("d M, Y", strtotime($user['created_at'])); ?></td>

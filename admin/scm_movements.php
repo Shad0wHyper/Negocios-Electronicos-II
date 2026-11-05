@@ -11,6 +11,15 @@ foreach ($pDocs as $doc) {
     }
 }
 
+// Get users role map for movements attribution
+$usersRoleCache = [];
+$uDocs = $db->collection('users')->documents();
+foreach ($uDocs as $uDoc) {
+    if ($uDoc->exists()) {
+        $usersRoleCache[$uDoc->id()] = normalizeUserRole($uDoc->data()['role'] ?? 'user');
+    }
+}
+
 // Get movements
 $movements = [];
 $documents = $db->collection('scm_movements')->orderBy('created_at', 'DESC')->documents();
@@ -19,6 +28,7 @@ foreach ($documents as $doc) {
         $m = $doc->data();
         $m['id'] = $doc->id();
         $m['product_name'] = $productsCache[$m['product_id'] ?? ''] ?? 'Desconocido';
+        $m['actor_label'] = resolveMovementActorLabel($m, $usersRoleCache);
         $movements[] = $m;
     }
 }
@@ -73,8 +83,8 @@ require_once __DIR__ . '/includes/header.php';
                             <td class="px-6 py-4">
                                 <?php echo htmlspecialchars($m['reason'] ?? ''); ?>
                             </td>
-                            <td class="px-6 py-4 text-gray-400 text-xs">
-                                <?php echo htmlspecialchars($m['user_name'] ?? 'Admin'); ?>
+                            <td class="px-6 py-4 text-gray-500 text-xs font-medium">
+                                <?php echo htmlspecialchars($m['actor_label'] ?? 'Admin'); ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>

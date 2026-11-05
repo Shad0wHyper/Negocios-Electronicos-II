@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
 
     // Validaciones
-    if (empty($name) || !filter_var($email, FILTER_VALIDATE_EMAIL) || !in_array($role, ['customer', 'vendedor', 'logistica', 'admin'], true)) {
+    if (empty($name) || !filter_var($email, FILTER_VALIDATE_EMAIL) || !in_array($role, ['customer', 'admin'])) {
         $error = 'Por favor, completa los campos correctamente.';
     } else {
         // Comprobar si el nuevo email ya está en uso por OTRO usuario
@@ -101,8 +101,6 @@ require_once __DIR__ . '/includes/header.php';
                 <label for="role" class="block text-sm font-medium text-gray-700">Rol del Usuario</label>
                 <select name="role" id="role" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
                     <option value="customer" <?php echo ($user['role'] === 'customer') ? 'selected' : ''; ?>>Customer</option>
-                    <option value="vendedor" <?php echo ($user['role'] === 'vendedor') ? 'selected' : ''; ?>>Vendedor</option>
-                    <option value="logistica" <?php echo ($user['role'] === 'logistica') ? 'selected' : ''; ?>>Logística</option>
                     <option value="admin" <?php echo ($user['role'] === 'admin') ? 'selected' : ''; ?>>Admin</option>
                 </select>
             </div>

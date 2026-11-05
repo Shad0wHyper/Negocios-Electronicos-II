@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Email no válido.';
     } elseif (empty($name)) {
         $error = 'El nombre no puede estar vacío.';
-    } elseif (!in_array($role, ['customer', 'vendedor', 'logistica', 'admin'], true)) {
+    } elseif (!in_array($role, ['customer', 'admin'])) {
         $error = 'Rol no válido.';
     } else {
         // Comprobar si el email ya existe
@@ -36,26 +36,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($emailExists) {
             $error = 'Este correo ya está registrado.';
         } else {
-            // Crear también la cuenta de Firebase para que pueda iniciar sesión.
-            try {
-                $firebaseUser = $auth->createUserWithEmailAndPassword($email, $password);
-                $hash = password_hash($password, PASSWORD_DEFAULT);
-                $usersRef->document($firebaseUser->uid)->set([
-                    'name' => $name,
-                    'email' => $email,
-                    'password' => $hash,
-                    'role' => $role,
-                    'created_at' => date('Y-m-d H:i:s')
-                ]);
+            // Insertar nuevo usuario con su rol
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+            $usersRef->add([
+                'name' => $name,
+                'email' => $email,
+                'password' => $hash,
+                'role' => $role,
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
 
-                // Redirigir a la lista de usuarios
-                header('Location: users.php');
-                exit;
-            } catch (\Kreait\Firebase\Exception\Auth\EmailExists $e) {
-                $error = 'Este correo ya tiene una cuenta de acceso.';
-            } catch (\Throwable $e) {
-                $error = 'No se pudo crear el usuario. Inténtalo de nuevo.';
-            }
+            // Redirigir a la lista de usuarios
+            header('Location: users.php');
+            exit;
         }
     }
 }
@@ -100,8 +93,6 @@ require_once __DIR__ . '/includes/header.php';
                 <label for="role" class="block text-sm font-medium text-gray-700">Rol del Usuario</label>
                 <select name="role" id="role" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
                     <option value="customer" selected>Customer</option>
-                    <option value="vendedor">Vendedor</option>
-                    <option value="logistica">Logística</option>
                     <option value="admin">Admin</option>
                 </select>
             </div>

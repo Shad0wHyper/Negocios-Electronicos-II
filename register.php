@@ -2,7 +2,7 @@
 require_once 'includes/config.php';
 
 if (isset($_SESSION['user'])) {
-    header('Location: index.php');
+    header('Location: ' . getRoleDashboardUrl($_SESSION['user']['role'] ?? 'user'));
     exit;
 }
 ?>
