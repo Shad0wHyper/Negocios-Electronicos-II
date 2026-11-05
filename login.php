@@ -125,7 +125,8 @@ if (isset($_SESSION['user'])) {
 
     <!-- Firebase Auth Script -->
     <script type="module">
-        import { auth, googleProvider, signInWithPopup, signInWithEmailAndPassword, sendPasswordResetEmail, signOut } from './js/firebase-auth.js';
+        import { auth, googleProvider, signInWithPopup, signInWithEmailAndPassword, sendPasswordResetEmail } from './js/firebase-auth.js';
+        import { signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 
         // Si viene de cerrar sesión, asegurar cierre también en el cliente Firebase
         const urlParams = new URLSearchParams(window.location.search);
