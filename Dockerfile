@@ -13,7 +13,8 @@ RUN apt-get update && apt-get install -y \
 
 
 # Instalar extensión ZIP
-RUN docker-php-ext-install zip bcmath
+RUN docker-php-ext-install zip bcmath && \
+    echo "output_buffering = 4096" > /usr/local/etc/php/conf.d/output-buffering.ini
 
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

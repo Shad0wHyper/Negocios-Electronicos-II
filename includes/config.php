@@ -1,5 +1,8 @@
 <?php
 // includes/config.php
+if (!ob_get_level()) {
+    ob_start();
+}
 if (session_status() === PHP_SESSION_NONE) {
     session_name('__session');
     session_start();
