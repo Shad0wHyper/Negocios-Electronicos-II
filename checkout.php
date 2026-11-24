@@ -1,8 +1,9 @@
 <?php
 // checkout.php
 require_once 'includes/config.php';
-require_once 'includes/auth.php';  // Asegura que el usuario esté logueado
+require_once 'includes/auth.php';
 require_once 'includes/stock.php';
+require_once 'includes/wallet_helpers.php';
 
 // 1) Verificar address_id
 if (!isset($_GET['address_id']) || empty($_GET['address_id'])) {
@@ -18,7 +19,7 @@ if (!$addressDoc->exists()) {
     exit;
 }
 $address = $addressDoc->data();
-if ($address['user_id'] !== $_SESSION['user']['id']) {
+if (($address['user_id'] ?? '') !== $_SESSION['user']['id']) {
     header('Location: address.php');
     exit;
 }
@@ -31,7 +32,7 @@ if (empty($product_ids)) {
     exit;
 }
 
-// 4) Cargar productos
+// 4) Cargar productos y validar stock
 $products = [];
 $stockErrors = [];
 foreach ($product_ids as $pid) {
@@ -55,76 +56,199 @@ if (!empty($stockErrors)) {
 }
 
 // 5) Calcular totales
-$subtotal = 0;
+$subtotal = 0.0;
 foreach ($products as $p) {
-    $subtotal += $p['price'] * $cart[$p['id']];
+    $subtotal += (float)$p['price'] * (int)$cart[$p['id']];
 }
-$total = $subtotal + 120; // envío fijo
+$subtotal = round($subtotal, 2);
+$shippingCost = 120.00;
+$total = round($subtotal + $shippingCost, 2);
 
+$currentUserId = (string)$_SESSION['user']['id'];
+$checkoutError = '';
+
+// 6) Procesar pago con Monedero (antes de imprimir HTML)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'pay_wallet') {
+    try {
+        $result = processWalletCheckout($db, $currentUserId, $_SESSION['user'], $address, $address_id, $cart, $shippingCost);
+        $_SESSION['cart'] = [];
+        header('Location: order_confirmation.php?id=' . urlencode($result['order_id']));
+        exit;
+    } catch (Throwable $e) {
+        $checkoutError = $e->getMessage();
+    }
+}
+
+$walletBalance = getUserWalletBalance($db, $currentUserId);
+$balanceAfterPayment = round($walletBalance - $total, 2);
+$hasEnoughBalance = ($walletBalance >= $total);
+
+require_once 'includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <?php require_once 'includes/header.php'; ?>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Pago – Estampa-TLA</title>
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        .order-summary { max-width:600px; margin:2rem auto; padding:1.5rem; background:#f4f4f4; border-radius:8px; }
-        .order-summary h2 { margin-bottom:1rem; }
-        .order-summary ul { list-style:none; padding:0; margin-bottom:1rem; }
-        .order-summary li { display:flex; align-items:center; margin-bottom:0.75rem; }
-        .order-summary li img { width:60px; height:60px; object-fit:cover; border-radius:4px; margin-right:0.75rem; }
-        .order-summary .order-totals div { margin-bottom:0.5rem; }
-        .paypal-standard-btn { background:#0070ba;color:#fff;padding:0.75rem 1.5rem;border:none;border-radius:4px;cursor:pointer; }
-        .paypal-standard-btn:hover { background:#005c99; }
-    </style>
-</head>
-<body>
-<main>
-    <section class="order-summary">
-        <h2>Resumen de tu pedido</h2>
 
-        <p><strong>Dirección de envío:</strong><br>
-            <?= htmlspecialchars($address['first_name'].' '.$address['last_name']) ?><br>
-            <?= htmlspecialchars($address['address'].', '.$address['city'].', '.$address['state'].' CP '.$address['zip']) ?><br>
-            T: <?= htmlspecialchars($address['phone']) ?>
-        </p>
+<section class="checkout-page">
+    <nav class="breadcrumb">
+        <a href="index.php">Home</a> / <a href="cart.php">Carrito</a> / <a href="address.php">Dirección</a> / <span>Checkout</span>
+    </nav>
 
-        <ul>
-            <?php foreach ($products as $p):
-                $qty = $cart[$p['id']];
-                ?>
-                <li>
-                    <img src="<?= htmlspecialchars($p['image'], ENT_QUOTES) ?>" alt="<?= htmlspecialchars($p['name'], ENT_QUOTES) ?>">
-                    <div>
-                        <strong><?= htmlspecialchars($p['name'],ENT_QUOTES) ?></strong><br>
-                        Cantidad: <?= $qty ?><br>
-                        Subtotal: $<?= number_format($p['price'] * $qty,2) ?>
+    <div class="checkout-header">
+        <h1>Finalizar Compra</h1>
+        <p>Revisa tu dirección de entrega, los productos y selecciona tu método de pago.</p>
+    </div>
+
+    <?php if ($checkoutError !== ''): ?>
+        <div class="contact-alert-error" role="alert">
+            <?= htmlspecialchars($checkoutError, ENT_QUOTES) ?>
+        </div>
+    <?php endif; ?>
+
+    <div class="checkout-grid">
+        <!-- Columna izquierda: Dirección y Resumen -->
+        <div class="checkout-left">
+            <div class="checkout-card">
+                <div class="checkout-card-title-row">
+                    <h2>1. Datos de entrega</h2>
+                    <a href="address.php" class="checkout-edit-link">Cambiar dirección</a>
+                </div>
+                <p class="checkout-address-text">
+                    <strong><?= htmlspecialchars(($address['first_name'] ?? '') . ' ' . ($address['last_name'] ?? ''), ENT_QUOTES) ?></strong><br>
+                    <?= htmlspecialchars(($address['address'] ?? '') . ', ' . ($address['city'] ?? '') . ', ' . ($address['state'] ?? '') . ' CP ' . ($address['zip'] ?? ''), ENT_QUOTES) ?><br>
+                    Tel: <?= htmlspecialchars($address['phone'] ?? '', ENT_QUOTES) ?>
+                </p>
+            </div>
+
+            <div class="checkout-card">
+                <h2>2. Resumen de tu pedido</h2>
+                <ul class="checkout-items-list">
+                    <?php foreach ($products as $p):
+                        $qty = (int)$cart[$p['id']];
+                        $lineTotal = (float)$p['price'] * $qty;
+                    ?>
+                        <li class="checkout-item-row">
+                            <img src="<?= htmlspecialchars($p['image'] ?? '', ENT_QUOTES) ?>" alt="<?= htmlspecialchars($p['name'] ?? '', ENT_QUOTES) ?>">
+                            <div class="checkout-item-info">
+                                <strong><?= htmlspecialchars($p['name'] ?? '', ENT_QUOTES) ?></strong>
+                                <span>Cantidad: <?= $qty ?> &times; $<?= number_format((float)$p['price'], 2) ?></span>
+                            </div>
+                            <div class="checkout-item-total">$<?= number_format($lineTotal, 2) ?></div>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+
+                <div class="checkout-totals">
+                    <div class="checkout-total-row">
+                        <span>Subtotal</span>
+                        <span>$<?= number_format($subtotal, 2) ?></span>
                     </div>
-                </li>
-            <?php endforeach; ?>
-        </ul>
+                    <div class="checkout-total-row">
+                        <span>Envío estándar</span>
+                        <span>$<?= number_format($shippingCost, 2) ?></span>
+                    </div>
+                    <div class="checkout-total-row checkout-total-final">
+                        <span>Total a pagar</span>
+                        <span>$<?= number_format($total, 2) ?></span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <div><strong>Subtotal:</strong> $<?= number_format($subtotal,2) ?></div>
-        <div><strong>Envío:</strong> $120.00</div>
-        <div><strong>Total:</strong> $<?= number_format($total,2) ?></div>
+        <!-- Columna derecha: Métodos de pago -->
+        <div class="checkout-right">
+            <div class="checkout-card">
+                <h2>3. Método de pago</h2>
 
-        <!-- PayPal Payments Standard Form -->
-        <form action="https://www.sandbox.paypal.com/cgi-bin/webscr" method="post">
-            <input type="hidden" name="cmd" value="_xclick">
-            <input type="hidden" name="business" value="sb-fyveq42755301@business.example.com">
-            <input type="hidden" name="item_name" value="Pedido #<?= time() ?>">
-            <input type="hidden" name="amount" value="<?= number_format($total,2,'.','') ?>">
-            <input type="hidden" name="currency_code" value="MXN">
-            <input type="hidden" name="return" value="http://localhost/estampa/thankyou.php">
-            <input type="hidden" name="notify_url" value="http://localhost/estampa/process_order.php">
-            <button type="submit" class="paypal-standard-btn">Pagar con PayPal</button>
-        </form>
-    </section>
-</main>
+                <div class="payment-options">
+                    <label class="payment-option is-selected" data-method="monedero">
+                        <input type="radio" name="payment_selector" value="monedero" checked>
+                        <div>
+                            <strong>Monedero Electrónico Xanarchy</strong>
+                            <span>Saldo disponible: $<?= number_format($walletBalance, 2) ?></span>
+                        </div>
+                    </label>
+
+                    <label class="payment-option" data-method="paypal">
+                        <input type="radio" name="payment_selector" value="paypal">
+                        <div>
+                            <strong>PayPal</strong>
+                            <span>Pago externo mediante PayPal Sandbox</span>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Panel Pago con Monedero -->
+                <div id="panel-monedero" class="payment-panel">
+                    <div class="wallet-summary-box">
+                        <div class="wallet-summary-row">
+                            <span>Saldo disponible:</span>
+                            <strong>$<?= number_format($walletBalance, 2) ?></strong>
+                        </div>
+                        <div class="wallet-summary-row">
+                            <span>Total a pagar:</span>
+                            <strong>$<?= number_format($total, 2) ?></strong>
+                        </div>
+                        <div class="wallet-summary-row wallet-summary-after <?= $hasEnoughBalance ? 'is-positive' : 'is-negative' ?>">
+                            <span>Saldo después del pago:</span>
+                            <strong>$<?= number_format($balanceAfterPayment, 2) ?></strong>
+                        </div>
+                    </div>
+
+                    <?php if ($hasEnoughBalance): ?>
+                        <form method="post" action="checkout.php?address_id=<?= urlencode($address_id) ?>">
+                            <input type="hidden" name="action" value="pay_wallet">
+                            <button type="submit" class="wallet-confirm-btn">Confirmar pago con Monedero</button>
+                        </form>
+                    <?php else: ?>
+                        <div class="wallet-insufficient-box">
+                            <p>Tu saldo actual no es suficiente para cubrir el total de esta compra.</p>
+                            <a href="wallet.php?return=checkout&address_id=<?= urlencode($address_id) ?>" class="wallet-recharge-link">
+                                Recargar monedero ahora
+                            </a>
+                        </div>
+                        <button type="button" class="wallet-confirm-btn" disabled>Saldo insuficiente</button>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Panel Pago con PayPal -->
+                <div id="panel-paypal" class="payment-panel" style="display: none;">
+                    <p class="paypal-panel-note">Serás redirigido a la pasarela de PayPal Sandbox para completar tu pago.</p>
+                    <form action="https://www.sandbox.paypal.com/cgi-bin/webscr" method="post">
+                        <input type="hidden" name="cmd" value="_xclick">
+                        <input type="hidden" name="business" value="sb-fyveq42755301@business.example.com">
+                        <input type="hidden" name="item_name" value="Pedido #<?= time() ?>">
+                        <input type="hidden" name="amount" value="<?= number_format($total, 2, '.', '') ?>">
+                        <input type="hidden" name="currency_code" value="MXN">
+                        <input type="hidden" name="return" value="http://localhost/estampa/thankyou.php">
+                        <input type="hidden" name="notify_url" value="http://localhost/estampa/process_order.php">
+                        <button type="submit" class="paypal-standard-btn">Pagar con PayPal</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const radios = document.querySelectorAll('input[name="payment_selector"]');
+        const options = document.querySelectorAll('.payment-option');
+        const panelMonedero = document.getElementById('panel-monedero');
+        const panelPaypal = document.getElementById('panel-paypal');
+
+        radios.forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                options.forEach(function (opt) {
+                    opt.classList.toggle('is-selected', opt.dataset.method === radio.value);
+                });
+                if (radio.value === 'monedero') {
+                    panelMonedero.style.display = 'block';
+                    panelPaypal.style.display = 'none';
+                } else {
+                    panelMonedero.style.display = 'none';
+                    panelPaypal.style.display = 'block';
+                }
+            });
+        });
+    });
+</script>
 
 <?php require_once 'includes/footer.php'; ?>
-</body>
-</html>

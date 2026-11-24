@@ -18,18 +18,9 @@ if (!$doc->exists()) {
 
 $product = $doc->data();
 $product['id'] = $doc->id();
-?>
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <?php require_once 'includes/header.php'; ?>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Estampa-TLA - <?= htmlspecialchars($product['name']) ?></title>
-    <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
+require_once 'includes/header.php';
+?>
 
 <section class="product-page">
     <nav class="breadcrumb">
@@ -52,7 +43,7 @@ $product['id'] = $doc->id();
 
             <div class="rating-stock">
                 <div class="rating">⭐⭐⭐⭐☆ (1256 Reseñas)</div>
-                <div class="stock"><?= $product['stock'] > 0 ? 'En stock' : 'Agotado' ?></div>
+                <div class="stock"><?= (int)($product['stock'] ?? 0) > 0 ? 'En stock (' . (int)$product['stock'] . ' piezas)' : 'Agotado' ?></div>
             </div>
 
             <div class="price">
@@ -146,5 +137,3 @@ $product['id'] = $doc->id();
 </section>
 
 <?php require_once 'includes/footer.php'; ?>
-</body>
-</html>

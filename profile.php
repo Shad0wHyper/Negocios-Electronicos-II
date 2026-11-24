@@ -3,9 +3,11 @@
 require_once 'includes/config.php';
 require_once 'includes/auth.php';
 require_once 'includes/support_helpers.php';
+require_once 'includes/wallet_helpers.php';
 require_once 'includes/header.php';
 
 $currentUserId = (string)$_SESSION['user']['id'];
+$walletBalance = getUserWalletBalance($db, $currentUserId);
 
 // Obtener dirección principal del usuario
 $addressesRef = $db->collection('addresses');
@@ -120,6 +122,21 @@ foreach ($allUserTickets as $t) {
             <div>
                 <h3>Historial de Compras</h3>
                 <p><a href="orders.php" class="link-btn">Ver historial</a></p>
+            </div>
+        </div>
+
+        <div class="profile-item">
+            <div class="profile-wallet-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+                    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+                    <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+                </svg>
+            </div>
+            <div>
+                <h3>Mi Monedero</h3>
+                <p>Saldo actual: <strong>$<?= number_format($walletBalance, 2) ?></strong></p>
+                <p><a href="wallet.php" class="link-btn">Recargar / Ver movimientos</a></p>
             </div>
         </div>
     </div>
