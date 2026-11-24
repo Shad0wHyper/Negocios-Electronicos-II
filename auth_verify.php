@@ -22,9 +22,27 @@ try {
     $verifiedIdToken = $auth->verifyIdToken($idTokenString);
     $uid = $verifiedIdToken->claims()->get('sub');
     
-    // Optimización: Extraer email y nombre directamente del Token (sin hacer petición extra a Google)
+    // Optimización: Extraer email y nombre del Token con respaldo del nombre enviado o Firebase Auth
     $email = $verifiedIdToken->claims()->get('email');
-    $displayName = $verifiedIdToken->claims()->get('name') ?? 'Usuario';
+    $tokenName = trim((string)($verifiedIdToken->claims()->get('name') ?? ''));
+    $providedName = trim((string)($input['name'] ?? ''));
+
+    if ($tokenName !== '') {
+        $displayName = $tokenName;
+    } elseif ($providedName !== '') {
+        $displayName = $providedName;
+    } else {
+        $displayName = '';
+        try {
+            $firebaseUser = $auth->getUser($uid);
+            $displayName = trim((string)($firebaseUser->displayName ?? ''));
+        } catch (\Throwable $e) {
+            $displayName = '';
+        }
+        if ($displayName === '') {
+            $displayName = 'Usuario';
+        }
+    }
     
     // Verificar si el usuario existe en Firestore (por UID o por email si fue migrado/creado desde panel)
     $userRef = $db->collection('users')->document($uid);
@@ -47,7 +65,7 @@ try {
             $userData = $existingByEmail->data();
             $docId = $existingByEmail->id();
         } else {
-            // Es un usuario nuevo (por ejemplo, inició sesión con Google por primera vez)
+            // Es un usuario nuevo (por ejemplo, inició sesión con Google o se registró por primera vez)
             $userData = [
                 'name' => $displayName,
                 'email' => $email,
@@ -58,6 +76,13 @@ try {
         }
     } else {
         $userData = $snapshot->data();
+    }
+
+    // Si la cuenta existente quedó guardada como 'Usuario' o vacía, sincronizar el nombre real
+    $storedName = trim((string)($userData['name'] ?? ''));
+    if (($storedName === '' || $storedName === 'Usuario') && $displayName !== 'Usuario') {
+        $userData['name'] = $displayName;
+        $db->collection('users')->document($docId)->set(['name' => $displayName], ['merge' => true]);
     }
     
     // Normalizar rol y añadir el ID al array de sesión

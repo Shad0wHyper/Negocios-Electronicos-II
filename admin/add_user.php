@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Email no válido.';
     } elseif (empty($name)) {
         $error = 'El nombre no puede estar vacío.';
-    } elseif (!in_array($role, ['customer', 'admin', 'vendedor', 'logistica'], true)) {
+    } elseif (!in_array($role, ['customer', 'admin', 'vendedor', 'logistica', 'soporte'], true)) {
         $error = 'Rol no válido.';
     } else {
         // Comprobar si el email ya existe
@@ -95,6 +95,7 @@ require_once __DIR__ . '/includes/header.php';
                     <option value="customer" selected>Customer (Cliente)</option>
                     <option value="vendedor">Vendedor (Ventas)</option>
                     <option value="logistica">Logística (SCM / Inventario)</option>
+                    <option value="soporte">Soporte (Atención al Cliente / Tickets)</option>
                     <option value="admin">Admin (Administrador)</option>
                 </select>
             </div>

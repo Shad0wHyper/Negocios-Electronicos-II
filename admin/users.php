@@ -61,6 +61,9 @@ require_once __DIR__ . '/includes/header.php';
                                         } elseif ($uRole === 'logistica') {
                                             $roleBadgeClass = 'text-emerald-700 bg-emerald-100';
                                             $roleDisplay = 'Logística';
+                                        } elseif ($uRole === 'soporte') {
+                                            $roleBadgeClass = 'text-amber-700 bg-amber-100';
+                                            $roleDisplay = 'Soporte';
                                         }
                                     ?>
                                     <span class="px-2 py-1 font-semibold leading-tight text-xs rounded-full <?php echo $roleBadgeClass; ?>">

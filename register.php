@@ -85,10 +85,15 @@ if (isset($_SESSION['user'])) {
             e.preventDefault();
             errorMsg.style.display = 'none';
             
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const confirm = document.getElementById('confirm_password').value;
+
+            if (!name) {
+                showError('Por favor ingresa tu nombre completo.');
+                return;
+            }
 
             if (password !== confirm) {
                 showError('Las contraseñas no coinciden.');
@@ -106,12 +111,12 @@ if (isset($_SESSION['user'])) {
                 // Actualizar su perfil de Firebase con su nombre
                 await updateProfile(user, { displayName: name });
 
-                // Obtener Token y enviarlo al servidor PHP para crear la sesión
-                const idToken = await user.getIdToken();
+                // Forzar refresco del token para incluir displayName y enviarlo al servidor PHP
+                const idToken = await user.getIdToken(true);
                 const response = await fetch('auth_verify.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ idToken })
+                    body: JSON.stringify({ idToken, name })
                 });
                 
                 const data = await response.json();

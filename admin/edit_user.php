@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
 
     // Validaciones
-    if (empty($name) || !filter_var($email, FILTER_VALIDATE_EMAIL) || !in_array($role, ['customer', 'user', 'admin', 'vendedor', 'logistica'], true)) {
+    if (empty($name) || !filter_var($email, FILTER_VALIDATE_EMAIL) || !in_array($role, ['customer', 'user', 'admin', 'vendedor', 'logistica', 'soporte'], true)) {
         $error = 'Por favor, completa los campos correctamente.';
     } else {
         // Comprobar si el nuevo email ya está en uso por OTRO usuario
@@ -104,6 +104,7 @@ require_once __DIR__ . '/includes/header.php';
                     <option value="customer" <?php echo ($currentRole === 'customer' || $currentRole === 'user') ? 'selected' : ''; ?>>Customer (Cliente)</option>
                     <option value="vendedor" <?php echo ($currentRole === 'vendedor') ? 'selected' : ''; ?>>Vendedor (Ventas)</option>
                     <option value="logistica" <?php echo ($currentRole === 'logistica') ? 'selected' : ''; ?>>Logística (SCM / Inventario)</option>
+                    <option value="soporte" <?php echo ($currentRole === 'soporte') ? 'selected' : ''; ?>>Soporte (Atención al Cliente / Tickets)</option>
                     <option value="admin" <?php echo ($currentRole === 'admin') ? 'selected' : ''; ?>>Admin (Administrador)</option>
                 </select>
             </div>

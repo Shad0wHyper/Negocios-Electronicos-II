@@ -2,15 +2,37 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Escuchar a Xdebug (XAMPP)",
+            "name": "Iniciar Servidor PHP + Navegador",
+            "type": "php",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "preLaunchTask": "Abrir navegador",
+            "osx": {
+                "runtimeExecutable": "${env:HOME}/.config/herd-lite/bin/php",
+                "runtimeArgs": [
+                    "-S",
+                    "localhost:8000"
+                ]
+            },
+            "windows": {
+                "runtimeExecutable": "C:\\xampp\\php\\php.exe",
+                "runtimeArgs": [
+                    "-S",
+                    "localhost:8000"
+                ]
+            }
+        },
+        {
+            "name": "Escuchar a Xdebug (XAMPP Windows)",
             "type": "php",
             "request": "launch",
             "port": 9003
         },
         {
+            "name": "Abrir proyecto en navegador (XAMPP)",
             "type": "chrome",
             "request": "launch",
-            "name": "Abrir proyecto en navegador",
             "url": "http://localhost/Negocios 2 - Xanarchy/",
             "webRoot": "${workspaceFolder}"
         }

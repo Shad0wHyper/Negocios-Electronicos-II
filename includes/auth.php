@@ -8,7 +8,7 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-// Si un usuario de staff (admin, vendedor, logistica) entra al módulo de perfil de cliente, redirigirlo a su panel
+// Si un usuario de staff (admin, vendedor, logistica, soporte) entra al módulo de perfil de cliente, redirigirlo a su panel
 if (isStaffRole($_SESSION['user']['role'] ?? '')) {
     header('Location: ' . getRoleDashboardUrl($_SESSION['user']['role']));
     exit;
