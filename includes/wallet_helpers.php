@@ -3,6 +3,8 @@
 
 use Google\Cloud\Firestore\Transaction;
 
+require_once __DIR__ . '/commerce_helpers.php';
+
 if (file_exists(__DIR__ . '/scm_functions.php')) {
     require_once __DIR__ . '/scm_functions.php';
 }
@@ -132,6 +134,12 @@ if (!function_exists('processWalletCheckout')) {
         $userRef = $db->collection('users')->document($userId);
         $orderRef = $db->collection('orders')->newDocument();
         $walletTxRef = $db->collection('wallet_transactions')->newDocument();
+        $crmInteractionRef = $db->collection('crm_interactions')->newDocument();
+        $taxRef = $db->collection('store_settings')->document('taxes');
+        $promotionRefs = [];
+        foreach (getActivePromotions($db) as $promotion) {
+            $promotionRefs[$promotion['id']] = $db->collection('promotions')->document($promotion['id']);
+        }
 
         $productRefs = [];
         $movementRefs = [];
@@ -162,6 +170,9 @@ if (!function_exists('processWalletCheckout')) {
             $userRef,
             $orderRef,
             $walletTxRef,
+            $crmInteractionRef,
+            $taxRef,
+            $promotionRefs,
             $productRefs,
             $movementRefs,
             $cart,
@@ -177,6 +188,18 @@ if (!function_exists('processWalletCheckout')) {
         ) {
             // 1) Todas las lecturas primero (regla de transacciones de Firestore)
             $userSnapshot = $transaction->snapshot($userRef);
+            $taxSnapshot = $transaction->snapshot($taxRef);
+            $promotionSnapshots = [];
+            foreach ($promotionRefs as $promotionId => $promotionRef) {
+                $promotionSnapshot = $transaction->snapshot($promotionRef);
+                if ($promotionSnapshot->exists()) {
+                    $promotionData = $promotionSnapshot->data();
+                    if (!empty($promotionData['active'])) {
+                        $promotionData['id'] = $promotionId;
+                        $promotionSnapshots[] = $promotionData;
+                    }
+                }
+            }
             if (!$userSnapshot->exists()) {
                 throw new RuntimeException('No se encontró tu cuenta de usuario.');
             }
@@ -193,8 +216,7 @@ if (!function_exists('processWalletCheckout')) {
             }
 
             // 2) Validaciones de stock y cálculo de totales
-            $subtotal = 0.0;
-            $items = [];
+            $currentProducts = [];
             $stockUpdates = [];
 
             foreach ($productSnapshots as $pid => $pSnap) {
@@ -210,18 +232,18 @@ if (!function_exists('processWalletCheckout')) {
                     throw new RuntimeException("Stock insuficiente para {$pName}. Disponibles: {$stock}.");
                 }
 
-                $unitPrice = round((float)($pData['price'] ?? 0), 2);
-                $subtotal += $unitPrice * $qty;
-                $items[] = [
-                    'product_id' => $pid,
-                    'quantity' => $qty,
-                    'unit_price' => $unitPrice,
-                ];
+                $pData['id'] = $pid;
+                $currentProducts[] = $pData;
                 $stockUpdates[$pid] = $stock - $qty;
             }
 
-            $subtotal = round($subtotal, 2);
-            $total = round($subtotal + $shippingCost, 2);
+            $taxData = $taxSnapshot->exists() ? $taxSnapshot->data() : [];
+            $pricing = calculateCartTotals($currentProducts, $cart, $promotionSnapshots, [
+                'enabled' => (bool)($taxData['enabled'] ?? true),
+                'rate' => (float)($taxData['rate'] ?? 16),
+                'name' => (string)($taxData['name'] ?? 'IVA'),
+            ], $shippingCost);
+            $total = $pricing['total'];
 
             if ($balanceBefore < $total) {
                 $missing = number_format($total - $balanceBefore, 2);
@@ -243,7 +265,7 @@ if (!function_exists('processWalletCheckout')) {
                     'order_id' => $orderRef->id(),
                     'user_id' => $userId,
                     'user_role' => $userRole,
-                    'user_name' => 'Cliente',
+                    'user_name' => $customerName,
                     'created_at' => $now,
                 ]);
             }
@@ -266,13 +288,19 @@ if (!function_exists('processWalletCheckout')) {
                 'customer_email' => $customerEmail,
                 'address_id' => $addressId,
                 'shipping_address' => $shippingAddress,
-                'items' => $items,
-                'subtotal' => $subtotal,
-                'shipping_cost' => round($shippingCost, 2),
+                'items' => $pricing['items'],
+                'subtotal' => $pricing['subtotal'],
+                'discount_total' => $pricing['discount_total'],
+                'taxable_subtotal' => $pricing['taxable_subtotal'],
+                'tax_name' => $pricing['tax_name'],
+                'tax_rate' => $pricing['tax_rate'],
+                'tax_amount' => $pricing['tax_amount'],
+                'shipping_cost' => $pricing['shipping_cost'],
                 'total' => $total,
                 'payment_method' => 'monedero',
                 'status' => 'paid',
                 'source' => 'online_store',
+                'modules' => ['erp' => true, 'scm' => true, 'crm' => true],
                 'created_at' => $now,
             ]);
 
@@ -286,6 +314,15 @@ if (!function_exists('processWalletCheckout')) {
                 'reference' => $orderCode,
                 'order_id' => $orderRef->id(),
                 'description' => 'Compra en tienda — Orden ' . $orderCode,
+                'created_at' => $now,
+            ]);
+            $transaction->create($crmInteractionRef, [
+                'user_id' => $userId,
+                'admin_id' => 'system',
+                'type' => 'Compra',
+                'description' => 'Compra ' . $orderCode . ' registrada automáticamente desde la tienda.',
+                'order_id' => $orderRef->id(),
+                'amount' => $total,
                 'created_at' => $now,
             ]);
 

@@ -4,6 +4,7 @@ require_once 'includes/config.php';
 require_once 'includes/auth.php';
 require_once 'includes/stock.php';
 require_once 'includes/wallet_helpers.php';
+require_once 'includes/commerce_helpers.php';
 
 // 1) Verificar address_id
 if (!isset($_GET['address_id']) || empty($_GET['address_id'])) {
@@ -55,27 +56,37 @@ if (!empty($stockErrors)) {
     exit;
 }
 
-// 5) Calcular totales
-$subtotal = 0.0;
-foreach ($products as $p) {
-    $subtotal += (float)$p['price'] * (int)$cart[$p['id']];
-}
-$subtotal = round($subtotal, 2);
+// 5) Calcular totales con promociones e impuestos configurados
 $shippingCost = 120.00;
-$total = round($subtotal + $shippingCost, 2);
+$promotions = getActivePromotions($db);
+$taxSettings = getStoreTaxSettings($db);
+$pricing = calculateCartTotals($products, $cart, $promotions, $taxSettings, $shippingCost);
+$subtotal = $pricing['subtotal'];
+$total = $pricing['total'];
+$pricingByProduct = [];
+foreach ($pricing['items'] as $itemPricing) {
+    $pricingByProduct[$itemPricing['product_id']] = $itemPricing;
+}
 
 $currentUserId = (string)$_SESSION['user']['id'];
 $checkoutError = '';
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 
 // 6) Procesar pago con Monedero (antes de imprimir HTML)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'pay_wallet') {
-    try {
-        $result = processWalletCheckout($db, $currentUserId, $_SESSION['user'], $address, $address_id, $cart, $shippingCost);
-        $_SESSION['cart'] = [];
-        header('Location: order_confirmation.php?id=' . urlencode($result['order_id']));
-        exit;
-    } catch (Throwable $e) {
-        $checkoutError = $e->getMessage();
+    if (!hash_equals($_SESSION['csrf_token'], (string)($_POST['csrf_token'] ?? ''))) {
+        $checkoutError = 'La sesión del checkout expiró. Recarga e inténtalo de nuevo.';
+    } else {
+        try {
+            $result = processWalletCheckout($db, $currentUserId, $_SESSION['user'], $address, $address_id, $cart, $shippingCost);
+            $_SESSION['cart'] = [];
+            header('Location: order_confirmation.php?id=' . urlencode($result['order_id']));
+            exit;
+        } catch (Throwable $e) {
+            $checkoutError = $e->getMessage();
+        }
     }
 }
 
@@ -122,13 +133,15 @@ require_once 'includes/header.php';
                 <ul class="checkout-items-list">
                     <?php foreach ($products as $p):
                         $qty = (int)$cart[$p['id']];
-                        $lineTotal = (float)$p['price'] * $qty;
+                        $itemPricing = $pricingByProduct[$p['id']] ?? [];
+                        $lineTotal = $itemPricing['line_total'] ?? ((float)$p['price'] * $qty);
                     ?>
                         <li class="checkout-item-row">
                             <img src="<?= htmlspecialchars($p['image'] ?? '', ENT_QUOTES) ?>" alt="<?= htmlspecialchars($p['name'] ?? '', ENT_QUOTES) ?>">
                             <div class="checkout-item-info">
                                 <strong><?= htmlspecialchars($p['name'] ?? '', ENT_QUOTES) ?></strong>
                                 <span>Cantidad: <?= $qty ?> &times; $<?= number_format((float)$p['price'], 2) ?></span>
+                                <?php if (!empty($itemPricing['promotion_name'])): ?><span class="text-green-700"><?= htmlspecialchars($itemPricing['promotion_name'], ENT_QUOTES) ?>: −$<?= number_format($itemPricing['discount_per_unit'] * $qty, 2) ?></span><?php endif; ?>
                             </div>
                             <div class="checkout-item-total">$<?= number_format($lineTotal, 2) ?></div>
                         </li>
@@ -139,6 +152,16 @@ require_once 'includes/header.php';
                     <div class="checkout-total-row">
                         <span>Subtotal</span>
                         <span>$<?= number_format($subtotal, 2) ?></span>
+                    </div>
+                    <?php if ($pricing['discount_total'] > 0): ?>
+                    <div class="checkout-total-row">
+                        <span>Descuentos</span>
+                        <span>−$<?= number_format($pricing['discount_total'], 2) ?></span>
+                    </div>
+                    <?php endif; ?>
+                    <div class="checkout-total-row">
+                        <span><?= htmlspecialchars($pricing['tax_name'], ENT_QUOTES) ?> (<?= number_format($pricing['tax_rate'], 2) ?>%)</span>
+                        <span>$<?= number_format($pricing['tax_amount'], 2) ?></span>
                     </div>
                     <div class="checkout-total-row">
                         <span>Envío estándar</span>
@@ -195,6 +218,7 @@ require_once 'includes/header.php';
                     <?php if ($hasEnoughBalance): ?>
                         <form method="post" action="checkout.php?address_id=<?= urlencode($address_id) ?>">
                             <input type="hidden" name="action" value="pay_wallet">
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES) ?>">
                             <button type="submit" class="wallet-confirm-btn">Confirmar pago con Monedero</button>
                         </form>
                     <?php else: ?>

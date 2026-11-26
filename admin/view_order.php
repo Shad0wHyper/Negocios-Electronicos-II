@@ -82,9 +82,9 @@ $address = !empty($addresses) ? $addresses[0] : null;
 // 5. Calcular subtotales
 $itemsSubtotal = 0;
 foreach ($orderItems as $item) {
-    $itemsSubtotal += $item['unit_price'] * $item['quantity'];
+    $itemsSubtotal += ((float)($item['unit_price'] ?? 0) - (float)($item['discount_per_unit'] ?? 0)) * (int)($item['quantity'] ?? 0);
 }
-$shippingCost = $order['total'] - $itemsSubtotal;
+$shippingCost = (float)($order['shipping_cost'] ?? max(0, $order['total'] - $itemsSubtotal));
 
 
 // Incluir el header
@@ -108,7 +108,9 @@ require_once __DIR__ . '/includes/header.php';
                     <div class="space-y-2">
                         <p><strong>Fecha:</strong> <?php echo date("d M, Y H:i", strtotime($order['created_at'])); ?></p>
                         <p><strong>Método de pago:</strong> <?php echo htmlspecialchars(getPaymentMethodLabel($order['payment_method'] ?? null)); ?></p>
-                        <p><strong>Subtotal (Artículos):</strong> $<?php echo number_format($itemsSubtotal, 2); ?></p>
+                        <p><strong>Subtotal:</strong> $<?php echo number_format((float)($order['subtotal'] ?? $itemsSubtotal), 2); ?></p>
+                        <?php if ((float)($order['discount_total'] ?? 0) > 0): ?><p><strong>Descuentos:</strong> −$<?php echo number_format((float)$order['discount_total'], 2); ?></p><?php endif; ?>
+                        <?php if (array_key_exists('tax_amount', $order)): ?><p><strong><?php echo htmlspecialchars($order['tax_name'] ?? 'Impuestos'); ?> (<?php echo number_format((float)($order['tax_rate'] ?? 0), 2); ?>%):</strong> $<?php echo number_format((float)$order['tax_amount'], 2); ?></p><?php endif; ?>
                         <p><strong>Envío:</strong> $<?php echo number_format($shippingCost, 2); ?></p>
                         <p class="font-bold border-t pt-2 mt-2"><strong>Total:</strong> $<?php echo number_format($order['total'], 2); ?></p>
                         <div class="border-t pt-3 mt-3">
@@ -168,9 +170,9 @@ require_once __DIR__ . '/includes/header.php';
                                         <img src="<?php echo htmlspecialchars($item['product_image']); ?>" class="h-12 w-12 object-cover rounded mr-4">
                                         <?php echo htmlspecialchars($item['product_name']); ?>
                                     </th>
-                                    <td class="px-6 py-4">$<?php echo number_format($item['unit_price'], 2); ?></td>
+                                    <td class="px-6 py-4">$<?php echo number_format((float)$item['unit_price'] - (float)($item['discount_per_unit'] ?? 0), 2); ?><?php if (!empty($item['promotion_name'])): ?><small class="block text-green-700"><?php echo htmlspecialchars($item['promotion_name']); ?></small><?php endif; ?></td>
                                     <td class="px-6 py-4"><?php echo $item['quantity']; ?></td>
-                                    <td class="px-6 py-4 text-right">$<?php echo number_format($item['unit_price'] * $item['quantity'], 2); ?></td>
+                                    <td class="px-6 py-4 text-right">$<?php echo number_format(((float)$item['unit_price'] - (float)($item['discount_per_unit'] ?? 0)) * (int)$item['quantity'], 2); ?></td>
                                 </tr>
                             <?php endforeach; ?>
                             </tbody>

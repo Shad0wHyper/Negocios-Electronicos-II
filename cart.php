@@ -1,6 +1,7 @@
 <?php
 require_once 'includes/config.php';
 require_once 'includes/stock.php';
+require_once 'includes/commerce_helpers.php';
 
 // Función para obtener los productos desde Firestore
 function getProductsByIds($db, $ids) {
@@ -23,7 +24,13 @@ $cart = $_SESSION['cart'] ?? [];
 $product_ids = array_keys($cart);
 $products = getProductsByIds($db, $product_ids);
 
-$total = 0;
+$promotions = getActivePromotions($db);
+$taxSettings = getStoreTaxSettings($db);
+$pricing = calculateCartTotals($products, $cart, $promotions, $taxSettings);
+$pricingByProduct = [];
+foreach ($pricing['items'] as $itemPricing) {
+    $pricingByProduct[$itemPricing['product_id']] = $itemPricing;
+}
 $stockErrors = [];
 $missingProductIds = array_diff($product_ids, array_column($products, 'id'));
 if (!empty($missingProductIds)) {
@@ -73,8 +80,8 @@ require_once 'includes/header.php';
                     if ($stockMessage !== '') {
                         $stockErrors[] = $stockMessage;
                     }
-                    $subtotal = $product['price'] * $quantity;
-                    $total += $subtotal;
+                    $itemPricing = $pricingByProduct[$id] ?? [];
+                    $subtotal = $itemPricing['line_total'] ?? ((float)$product['price'] * $quantity);
                     ?>
                     <tr>
                         <td><img src="<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['name']) ?>" /></td>
@@ -88,7 +95,15 @@ require_once 'includes/header.php';
                                 <span class="stock-status">Disponibles: <?= $stock ?></span>
                             <?php endif; ?>
                         </td>
-                        <td>$<?= number_format($product['price'], 2) ?></td>
+                        <td>
+                            <?php if (!empty($itemPricing['promotion_name'])): ?>
+                                <span class="line-through text-gray-500">$<?= number_format($product['price'], 2) ?></span>
+                                <strong class="text-green-700">$<?= number_format($product['price'] - $itemPricing['discount_per_unit'], 2) ?></strong>
+                                <small class="block text-green-700"><?= htmlspecialchars($itemPricing['promotion_name'], ENT_QUOTES) ?></small>
+                            <?php else: ?>
+                                $<?= number_format($product['price'], 2) ?>
+                            <?php endif; ?>
+                        </td>
                         <td>
                             <input type="number" name="quantities[<?= htmlspecialchars($id) ?>]" value="<?= $quantity ?>" min="1" max="<?= $stock ?>" />
                         </td>
@@ -106,9 +121,11 @@ require_once 'includes/header.php';
         </form>
 
         <div class="cart-totals">
-            <p>Subtotal: $<?= number_format($total, 2) ?></p>
-            <p>Envío fijo: $120.00</p>
-            <p><strong>Total: $<?= number_format($total + 120, 2) ?></strong></p>
+            <p>Subtotal: $<?= number_format($pricing['subtotal'], 2) ?></p>
+            <?php if ($pricing['discount_total'] > 0): ?><p>Descuentos: −$<?= number_format($pricing['discount_total'], 2) ?></p><?php endif; ?>
+            <p><?= htmlspecialchars($pricing['tax_name'], ENT_QUOTES) ?> (<?= number_format($pricing['tax_rate'], 2) ?>%): $<?= number_format($pricing['tax_amount'], 2) ?></p>
+            <p>Envío fijo: $<?= number_format($pricing['shipping_cost'], 2) ?></p>
+            <p><strong>Total: $<?= number_format($pricing['total'], 2) ?></strong></p>
             <?php if (!empty($stockErrors)): ?>
                 <div class="stock-alert stock-alert-error" role="alert">
                     <strong>No se puede continuar con la compra.</strong>
