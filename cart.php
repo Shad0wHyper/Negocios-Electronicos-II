@@ -34,18 +34,9 @@ unset($_SESSION['cart_error']);
 if (!empty($missingProductIds)) {
     $cartError = trim($cartError . ' ' . $stockErrors[0]);
 }
-?>
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <?php require_once 'includes/header.php'; ?>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Estampa-TLA - Carrito</title>
-    <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
+require_once 'includes/header.php';
+?>
 
 <section class="cart-page">
     <nav class="breadcrumb">
@@ -109,13 +100,15 @@ if (!empty($missingProductIds)) {
             </table>
 
             <div class="cart-actions">
+                <a href="remove_from_cart.php?clear=1" class="clear-cart-btn" onclick="return confirm('¿Vaciar todo el carrito?');">Vaciar carrito</a>
                 <button type="submit" class="update-cart">Actualizar Carrito</button>
             </div>
         </form>
 
         <div class="cart-totals">
             <p>Subtotal: $<?= number_format($total, 2) ?></p>
-            <p>Total: $<?= number_format($total * 1.10, 2) ?> <small>(+10% impuestos)</small></p>
+            <p>Envío fijo: $120.00</p>
+            <p><strong>Total: $<?= number_format($total + 120, 2) ?></strong></p>
             <?php if (!empty($stockErrors)): ?>
                 <div class="stock-alert stock-alert-error" role="alert">
                     <strong>No se puede continuar con la compra.</strong>
@@ -129,9 +122,8 @@ if (!empty($missingProductIds)) {
         </div>
 
     <?php else : ?>
-        <p>Tu carrito está vacío.</p>
+        <p>Tu carrito está vacío. <a href="shop.php" style="color: #2563eb; font-weight: 600;">Explorar catálogo</a></p>
     <?php endif; ?>
 </section>
 
-</body>
-</html>
+<?php require_once 'includes/footer.php'; ?>

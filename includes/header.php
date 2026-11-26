@@ -73,6 +73,11 @@ require_once __DIR__ . '/config.php';
                         </path>
                     </svg>
                 </a>
+                <?php
+                    $cartCount = !empty($_SESSION['cart']) && is_array($_SESSION['cart'])
+                        ? array_sum(array_map('intval', $_SESSION['cart']))
+                        : 0;
+                ?>
                 <a href="cart.php" class="btn-primary-small">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -81,7 +86,7 @@ require_once __DIR__ . '/config.php';
                         <circle cx="20" cy="21" r="1"></circle>
                         <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                     </svg>
-                    CART
+                    CART<?= $cartCount > 0 ? ' (' . $cartCount . ')' : '' ?>
                 </a>
             </div>
         </div>

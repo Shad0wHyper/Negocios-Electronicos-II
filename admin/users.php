@@ -48,9 +48,23 @@ require_once __DIR__ . '/includes/header.php';
                                 </th>
                                 <td class="px-6 py-4"><?php echo htmlspecialchars($user['email']); ?></td>
                                 <td class="px-6 py-4">
-                                    <span class="px-2 py-1 font-semibold leading-tight text-xs rounded-full
-                                        <?php echo ($user['role'] === 'admin') ? 'text-green-700 bg-green-100' : 'text-gray-700 bg-gray-100'; ?>">
-                                        <?php echo ucfirst($user['role']); ?>
+                                    <?php
+                                        $uRole = normalizeUserRole($user['role'] ?? 'customer');
+                                        $roleBadgeClass = 'text-gray-700 bg-gray-100';
+                                        $roleDisplay = ucfirst($uRole);
+                                        if ($uRole === 'admin') {
+                                            $roleBadgeClass = 'text-violet-700 bg-violet-100';
+                                            $roleDisplay = 'Admin';
+                                        } elseif ($uRole === 'vendedor') {
+                                            $roleBadgeClass = 'text-blue-700 bg-blue-100';
+                                            $roleDisplay = 'Vendedor';
+                                        } elseif ($uRole === 'logistica') {
+                                            $roleBadgeClass = 'text-emerald-700 bg-emerald-100';
+                                            $roleDisplay = 'Logística';
+                                        }
+                                    ?>
+                                    <span class="px-2 py-1 font-semibold leading-tight text-xs rounded-full <?php echo $roleBadgeClass; ?>">
+                                        <?php echo htmlspecialchars($roleDisplay); ?>
                                     </span>
                                 </td>
                                 <td class="px-6 py-4"><?php echo date("d M, Y", strtotime($user['created_at'])); ?></td>

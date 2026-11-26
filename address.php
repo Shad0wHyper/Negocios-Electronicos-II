@@ -16,7 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         'state' => $_POST['state'],
         'zip' => $_POST['zip'],
         'phone' => $_POST['phone'],
-        'notes' => $_POST['notes']
+        'notes' => $_POST['notes'],
+        'created_at' => date('Y-m-d H:i:s')
     ]);
     header('Location: address.php'); exit;
 }
@@ -33,17 +34,10 @@ foreach ($documents as $doc) {
         $addresses[] = $addr;
     }
 }
+require_once 'includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <?php require_once 'includes/header.php'; ?>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Mis Direcciones – Estampa-TLA</title>
-    <link rel="stylesheet" href="styles.css">
     <style>
-        .addresses-container, .new-address-form { max-width: 600px; margin: 2rem auto; }
+        .addresses-container, .new-address-form { max-width: 600px; margin: 120px auto 60px auto; padding: 0 20px; }
         .address-card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
         .address-card input { margin-right: 1rem; }
         .actions { text-align: center; margin-top: 1.5rem; }
@@ -54,9 +48,6 @@ foreach ($documents as $doc) {
         .hidden { display: none; }
         .address-form input, .address-form select, .address-form textarea { width: 100%; padding: 0.5rem; margin-bottom: 1rem; border: 1px solid #ccc; border-radius: 4px; }
     </style>
-</head>
-<body>
-<main>
     <section class="addresses-container">
         <?php if ($addresses): ?>
             <h2>Elige tu dirección</h2>
@@ -109,7 +100,6 @@ foreach ($documents as $doc) {
             </div>
         </form>
     </section>
-</main>
 
 <?php require_once 'includes/footer.php'; ?>
 
@@ -136,5 +126,3 @@ foreach ($documents as $doc) {
         });
     });
 </script>
-</body>
-</html>

@@ -1,5 +1,8 @@
 <?php
 // includes/config.php
+if (!ob_get_level()) {
+    ob_start();
+}
 if (session_status() === PHP_SESSION_NONE) {
     session_name('__session');
     session_start();
@@ -47,6 +50,9 @@ if (!function_exists('normalizeUserRole')) {
         if ($r === 'scm' || $r === 'almacen') {
             return 'logistica';
         }
+        if (in_array($r, ['support', 'soporte', 'atencion', 'atencion al cliente', 'mesa de ayuda'], true)) {
+            return 'soporte';
+        }
         return $r !== '' ? $r : 'user';
     }
 }
@@ -54,7 +60,7 @@ if (!function_exists('normalizeUserRole')) {
 if (!function_exists('isStaffRole')) {
     function isStaffRole(?string $role): bool
     {
-        return in_array(normalizeUserRole($role), ['admin', 'vendedor', 'logistica'], true);
+        return in_array(normalizeUserRole($role), ['admin', 'vendedor', 'logistica', 'soporte'], true);
     }
 }
 
@@ -69,6 +75,8 @@ if (!function_exists('getRoleDashboardUrl')) {
                 return $prefix . 'seller/dashboard.php';
             case 'logistica':
                 return $prefix . 'logistics/dashboard.php';
+            case 'soporte':
+                return $prefix . 'support/dashboard.php';
             default:
                 return $prefix . 'index.php';
         }
@@ -86,6 +94,8 @@ if (!function_exists('getRoleActorLabel')) {
                 return 'Vendedor';
             case 'logistica':
                 return 'Logística';
+            case 'soporte':
+                return 'Soporte';
             case 'system':
             case 'sistema':
                 return 'Sistema';
@@ -109,7 +119,7 @@ if (!function_exists('resolveMovementActorLabel')) {
             return getRoleActorLabel($usersRoleCache[$uid]);
         }
         $name = trim((string)($movement['user_name'] ?? ''));
-        if ($name !== '' && in_array(normalizeUserRole($name), ['admin', 'vendedor', 'logistica'], true)) {
+        if ($name !== '' && in_array(normalizeUserRole($name), ['admin', 'vendedor', 'logistica', 'soporte'], true)) {
             return getRoleActorLabel($name);
         }
         return $name !== '' ? $name : 'Admin';

@@ -2,6 +2,7 @@
 // seller/view_order.php
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth_seller.php';
+require_once __DIR__ . '/../includes/wallet_helpers.php';
 
 if (!isset($_GET['id']) || empty($_GET['id'])) {
     header('Location: orders.php');
@@ -97,6 +98,7 @@ require_once __DIR__ . '/includes/header.php';
                 <h3 class="text-lg font-semibold mb-4 border-b pb-2">Resumen del Pedido</h3>
                 <div class="space-y-2">
                     <p><strong>Fecha:</strong> <?php echo date("d M, Y H:i", strtotime($order['created_at'])); ?></p>
+                    <p><strong>Método de pago:</strong> <?php echo htmlspecialchars(getPaymentMethodLabel($order['payment_method'] ?? null)); ?></p>
                     <p><strong>Subtotal (Artículos):</strong> $<?php echo number_format($itemsSubtotal, 2); ?></p>
                     <p><strong>Envío:</strong> $<?php echo number_format($shippingCost, 2); ?></p>
                     <p class="font-bold border-t pt-2 mt-2"><strong>Total:</strong> $<?php echo number_format((float)$order['total'], 2); ?></p>
